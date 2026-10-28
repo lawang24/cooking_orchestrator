@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Recipe dependency graph",
+  "description": "Food flows through actions. Action dependsOn references express additional ordering. Runtime readiness, cook assignment and equipment availability are tracked separately. Validate graph semantics in addition to this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recipeId", "name", "source", "servings", "notes", "nodes", "edges", "outputs"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": "1.0"},
+    "recipeId": {"$ref": "#/$defs/id"},
+    "name": {"$ref": "#/$defs/text"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "publisher", "author"],
+      "properties": {
+        "url": {"type": "string", "format": "uri", "pattern": "^https?://"},
+        "publisher": {"$ref": "#/$defs/text"},
+        "author": {"$ref": "#/$defs/text"}
+      }
+    },
+    "servings": {"type": "integer", "minimum": 1},
+    "notes": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+    "nodes": {
+      "type": "array", "minItems": 3,
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/ingredient"},
+          {"$ref": "#/$defs/foodState"},
+          {"$ref": "#/$defs/action"}
+        ]
+      }
+    },
+    "edges": {
+      "type": "array", "minItems": 2, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["from", "to"],
+        "properties": {
+          "from": {"$ref": "#/$defs/id"},
+          "to": {"$ref": "#/$defs/id"}
+        }
+      }
+    },
+    "outputs": {
+      "description": "IDs of terminal food_state nodes representing the completed recipe.",
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"},
+    "text": {"type": "string", "minLength": 1},
+    "ingredient": {
+      "description": "One allocated portion, consumed by exactly one action. Repeated ingredients use separate portion nodes. Split a food state with an action if multiple branches need it.",
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "name", "quantity", "unit"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "type": {"const": "ingredient"},
+        "name": {"$ref": "#/$defs/text"},
+        "quantity": {"type": "number", "exclusiveMinimum": 0},
+        "unit": {"enum": ["g", "kg", "oz", "lb", "ml", "l", "tsp", "tbsp", "cup", "whole"]}
+      }
+    },
+    "foodState": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "type": {"const": "food_state"},
+        "name": {"$ref": "#/$defs/text"}
+      }
+    },
+    "duration": {
+      "description": "Planning duration, not an automatic completion trigger. Bounds describe the source range when one is supplied; the validator checks their ordering.",
+      "type": "object", "additionalProperties": false,
+      "required": ["plannedSeconds", "basis"],
+      "properties": {
+        "plannedSeconds": {"type": "integer", "minimum": 1},
+        "basis": {"enum": ["source", "estimate"]},
+        "minimumSeconds": {"type": "integer", "minimum": 1},
+        "maximumSeconds": {"type": "integer", "minimum": 1},
+        "note": {"$ref": "#/$defs/text"}
+      },
+      "dependentRequired": {
+        "minimumSeconds": ["maximumSeconds"],
+        "maximumSeconds": ["minimumSeconds"]
+      },
+      "allOf": [{
+        "if": {"properties": {"basis": {"const": "estimate"}}},
+        "then": {"required": ["note"]}
+      }]
+    },
+    "action": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "type", "instruction", "duration", "attention", "cooksRequired", "equipment", "dependsOn"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "type": {"const": "action"},
+        "instruction": {"$ref": "#/$defs/text"},
+        "duration": {"$ref": "#/$defs/duration"},
+        "attention": {"enum": ["active", "passive"]},
+        "cooksRequired": {"type": "integer", "minimum": 0},
+        "equipment": {
+          "description": "Equipment requirements during this action. A scheduler must map these names to available physical resources; they are not food nodes.",
+          "type": "array", "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        },
+        "dependsOn": {
+          "description": "Action IDs that must complete first, in addition to food-input dependencies. Useful for ordered use of the same wok.",
+          "type": "array", "uniqueItems": true,
+          "items": {"$ref": "#/$defs/id"}
+        }
+      },
+      "allOf": [{
+        "if": {"properties": {"attention": {"const": "active"}}},
+        "then": {"properties": {"cooksRequired": {"minimum": 1}}},
+        "else": {"properties": {"cooksRequired": {"const": 0}}}
+      }]
+    }
+  }
+}

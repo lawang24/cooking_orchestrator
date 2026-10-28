@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recipe graph</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f5f6f8,#15191e);--panel:light-dark(#fff,#20262d);--text:light-dark(#18232e,#ecf1f5);--muted:light-dark(#566575,#a9bac9);--line:light-dark(#c5ced7,#536375);--edge:light-dark(#63778a,#9daebe);--ingredient:light-dark(#e3f2ec,#173d33);--action:light-dark(#e7edff,#263555);--state:light-dark(#fff0d5,#493a20);--focus:light-dark(#315fcb,#8cb6ff)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif}header{padding:20px 24px 12px}h1{font-size:23px;line-height:1.25;margin:0 0 5px}p{margin:0 0 12px}.muted{color:var(--muted)}.toolbar,.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.toolbar{padding:12px 24px}.legend{margin-top:12px;gap:18px;font-size:13px}.key{display:inline-flex;align-items:center;gap:6px}.swatch{width:16px;height:16px;border:1px solid var(--line)}.ingredient{background:var(--ingredient);border-radius:8px}.action{background:var(--action)}.food_state{background:var(--state);border-radius:4px}.line{width:24px;border-top:2px solid var(--edge)}.line.order{border-top-style:dashed}button,select{font:inherit;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}button:focus-visible,select:focus-visible,.node:focus-visible{outline:3px solid var(--focus);outline-offset:3px}.toolbar label{display:flex;gap:6px;align-items:center}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 310px;border-top:1px solid var(--line);height:calc(100dvh - 205px);min-height:470px}.canvas{overflow:hidden;position:relative;touch-action:none}.canvas svg{width:100%;height:100%;display:block;cursor:grab}.canvas svg.dragging{cursor:grabbing}aside{padding:20px;background:var(--panel);border-left:1px solid var(--line);overflow:auto}h2{font-size:18px;margin:0 0 12px}h3{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:20px 0 6px}ul{padding-left:18px;margin:0}li{margin:4px 0}a{color:var(--focus)}.edge{fill:none;stroke:var(--edge);stroke-width:1.5}.edge.order{stroke-dasharray:6 5}.node{cursor:pointer}.node rect{stroke:var(--line);stroke-width:1.2}.node.ingredient-node rect{fill:var(--ingredient)}.node.action-node rect{fill:var(--action)}.node.food_state-node rect{fill:var(--state)}.node.selected rect{stroke:var(--focus);stroke-width:3}.node text{fill:var(--text);pointer-events:none;font-size:14px}.node .category{font-size:11px;fill:var(--muted);letter-spacing:.04em}.node .meta{font-size:12px;fill:var(--muted)}.dim{opacity:.16}.edge.related{stroke:var(--focus);stroke-width:2.5}#zoom{min-width:45px;text-align:center;font-variant-numeric:tabular-nums}.hint{position:absolute;bottom:12px;left:12px;background:var(--panel);color:var(--muted);padding:5px 10px;border-radius:4px;font-size:12px;pointer-events:none}.detail-button{padding:3px 6px;font-size:13px;text-align:left}.node-list{display:flex;flex-wrap:wrap;gap:6px}summary{cursor:pointer}.notes{font-size:13px}
+@media(max-width:760px){header{padding:16px}.toolbar{padding:10px 16px}.workspace{display:flex;flex-direction:column;height:auto;min-height:0}.canvas{height:65dvh;min-height:380px}aside{border-left:0;border-top:1px solid var(--line);overflow:visible}.legend{gap:10px}h1{font-size:20px}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Recipe graph</h1>
+  <div id="summary" class="muted"></div>
+  <div class="legend" aria-label="Graph legend">
+    <span class="key"><span class="swatch ingredient"></span>Ingredient</span>
+    <span class="key"><span class="swatch action"></span>Action</span>
+    <span class="key"><span class="swatch food_state"></span>Food state</span>
+    <span class="key"><span class="line"></span>Food flow</span>
+    <span class="key"><span class="line order"></span>Required order</span>
+  </div>
+</header>
+<div class="toolbar" aria-label="Diagram controls">
+  <button id="fit" type="button">Fit graph</button>
+  <button id="minus" type="button" aria-label="Zoom out">−</button>
+  <output id="zoom" aria-label="Zoom level"></output>
+  <button id="plus" type="button" aria-label="Zoom in">+</button>
+  <button id="actual" type="button">100%</button>
+  <label>Direction <select id="direction"><option value="LR">Left to right</option><option value="TB" selected>Top to bottom</option></select></label>
+  <label><input id="orders" type="checkbox" checked> Show ordering</label>
+  <button id="clear" type="button">Clear selection</button>
+</div>
+<main class="workspace">
+  <div class="canvas" id="canvas">
+    <svg id="diagram" role="group" aria-label="Recipe dependency graph. Select a node for details.">
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge)"></path></marker></defs>
+      <g id="viewport"><g id="edges"></g><g id="nodes"></g></g>
+    </svg>
+    <div class="hint">Scroll to zoom · Drag to pan · Select a node</div>
+  </div>
+  <aside aria-label="Node details"><div id="details" aria-live="polite"></div></aside>
+</main>
+<script>/* DAGRE_LIBRARY */</script>
+<script id="recipe-data" type="application/json">RECIPE_GRAPH_DATA</script>
+<script>
+(() => {
+  'use strict';
+  const recipe = JSON.parse(document.getElementById('recipe-data').textContent);
+  const byId = new Map(recipe.nodes.map(n => [n.id,n]));
+  const $ = id => document.getElementById(id);
+  const svg = $('diagram'), viewport = $('viewport'), detail = $('details');
+  const ns = 'http://www.w3.org/2000/svg';
+  const labels = {ingredient:'INGREDIENT',action:'ACTION',food_state:'FOOD STATE'};
+  let selected = null, layout, scale = 1, tx = 0, ty = 0, drag = null, moved = false;
+  const connections = recipe.edges.map(e => ({...e,kind:'food'}));
+  recipe.nodes.filter(n => n.type === 'action').forEach(n => n.dependsOn.forEach(id => connections.push({from:id,to:n.id,kind:'order'})));
+  function name(n) { return n.name || n.id.replace(/[_-]/g,' ').replace(/^./, c => c.toUpperCase()); }
+  function time(s) { return s >= 60 ? `${Math.floor(s/60)}m${s%60 ? ` ${s%60}s` : ''}` : `${s}s`; }
+  function meta(n) {
+    if(n.type === 'ingredient') return `${n.quantity} ${n.unit}`;
+    if(n.type === 'action') return `${time(n.duration.plannedSeconds)} · ${n.attention}${n.duration.basis === 'estimate' ? ' · est.' : ''}`;
+    return recipe.outputs.includes(n.id) ? 'Finished dish' : 'Intermediate state';
+  }
+  function element(tag, attrs={}, text) {
+    const el = document.createElementNS(ns,tag);
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+    if(text !== undefined) el.textContent=text;
+    return el;
+  }
+  function lines(text, max=27) {
+    const words=text.split(/\s+/), result=[''];
+    words.forEach(word => {
+      // Break long tokens too, so arbitrary valid labels cannot spill outside nodes.
+      while(word.length>max) { if(result.at(-1)) result.push(''); result[result.length-1]=word.slice(0,max); result.push(''); word=word.slice(max); }
+      const last=result.length-1;
+      if(result[last] && result[last].length+word.length+1>max) result.push(word);
+      else result[last]+=(result[last]?' ':'')+word;
+    });
+    return result.filter(Boolean);
+  }
+  function draw() {
+    layout = new dagre.graphlib.Graph({multigraph:true}).setGraph({rankdir:$('direction').value,ranksep:65,nodesep:24,marginx:25,marginy:25}).setDefaultEdgeLabel(()=>({}));
+    recipe.nodes.forEach(n => layout.setNode(n.id,{width:244,height:70+lines(name(n)).length*19}));
+    connections.forEach((e,i)=>layout.setEdge(e.from,e.to,{weight:e.kind==='food'?3:1},String(i)));
+    dagre.layout(layout);
+    $('nodes').replaceChildren(); $('edges').replaceChildren();
+    connections.forEach((e,i) => {
+      const points=layout.edge({v:e.from,w:e.to,name:String(i)}).points;
+      const path=element('path',{d:points.map((p,j)=>`${j?'L':'M'} ${p.x} ${p.y}`).join(' '),class:`edge ${e.kind}`,'marker-end':'url(#arrow)','data-index':i});
+      $('edges').append(path);
+    });
+    recipe.nodes.forEach(n => {
+      const p=layout.node(n.id), g=element('g',{class:`node ${n.type}-node`,transform:`translate(${p.x-p.width/2},${p.y-p.height/2})`,role:'button',tabindex:'0','aria-label':`${labels[n.type]}: ${name(n)}. ${meta(n)}`,'aria-pressed':'false','data-id':n.id});
+      g.append(element('rect',{width:p.width,height:p.height,rx:n.type==='ingredient'?24:n.type==='food_state'?12:3}));
+      g.append(element('text',{x:16,y:22,class:'category'},labels[n.type]));
+      lines(name(n)).forEach((line,i)=>g.append(element('text',{x:16,y:45+i*19},line)));
+      g.append(element('text',{x:16,y:p.height-15,class:'meta'},meta(n)));
+      g.addEventListener('click',()=>{if(!moved) select(n.id);});
+      g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(n.id,true);}});
+      $('nodes').append(g);
+    });
+    highlight(); fit();
+  }
+  function transform(){viewport.setAttribute('transform',`translate(${tx},${ty}) scale(${scale})`);$('zoom').textContent=`${Math.round(scale*100)}%`;}
+  function fit(){const b=svg.getBoundingClientRect();scale=Math.min((b.width-40)/layout.graph().width,(b.height-40)/layout.graph().height,1);scale=Math.max(scale,.01);tx=(b.width-layout.graph().width*scale)/2;ty=(b.height-layout.graph().height*scale)/2;transform();}
+  function zoom(factor,x=svg.clientWidth/2,y=svg.clientHeight/2){const next=Math.max(.01,Math.min(3,scale*factor));tx=x-(x-tx)*next/scale;ty=y-(y-ty)*next/scale;scale=next;transform();}
+  function focusNode(id){const p=layout.node(id);scale=1;tx=svg.clientWidth/2-p.x;ty=svg.clientHeight/2-p.y;transform();}
+  function highlight(){
+    const near=new Set(selected?[selected]:[]);
+    connections.filter(e=>e.kind==='food'||$('orders').checked).forEach(e=>{if(e.from===selected||e.to===selected){near.add(e.from);near.add(e.to);}});
+    $('nodes').querySelectorAll('.node').forEach(el=>{el.classList.toggle('selected',el.dataset.id===selected);el.classList.toggle('dim',!!selected&&!near.has(el.dataset.id));el.setAttribute('aria-pressed',String(el.dataset.id===selected));});
+    $('edges').querySelectorAll('.edge').forEach(el=>{const e=connections[Number(el.dataset.index)],related=e.from===selected||e.to===selected;el.style.display=e.kind==='order'&&!$('orders').checked?'none':'';el.classList.toggle('dim',!!selected&&!related);el.classList.toggle('related',related);});
+  }
+  function text(tag,value,cls){const el=document.createElement(tag);el.textContent=value;if(cls)el.className=cls;detail.append(el);return el;}
+  function links(title,ids){if(!ids.length)return;text('h3',title);const list=text('div','', 'node-list');ids.forEach(id=>{const b=document.createElement('button');b.className='detail-button';b.type='button';b.textContent=name(byId.get(id));b.addEventListener('click',()=>select(id,true));list.append(b);});}
+  function select(id,center=false){
+    selected=id;highlight();detail.replaceChildren();
+    if(!id){
+      text('h2','Explore the recipe');text('p','Select a node to inspect its inputs, outputs, and cooking details.');
+      text('p','This is a dependency graph, not a timed schedule.','muted');
+      const a=text('a',`Source: ${recipe.source.publisher}`);a.href=recipe.source.url;a.target='_blank';a.rel='noopener noreferrer';
+      const details=text('details','');const summary=document.createElement('summary');summary.textContent='Recipe notes';details.append(summary);const ul=document.createElement('ul');ul.className='notes';recipe.notes.forEach(note=>{const li=document.createElement('li');li.textContent=note;ul.append(li);});details.append(ul);
+      links('Jump to an action',recipe.nodes.filter(n=>n.type==='action').map(n=>n.id));return;
+    }
+    const n=byId.get(id);text('p',labels[n.type],'muted');text('h2',name(n));text('p',meta(n));
+    if(n.type==='action'){
+      text('p',n.instruction);text('h3','Timing');text('p',`${time(n.duration.plannedSeconds)} planned · ${n.duration.basis==='estimate'?'Estimated duration':'Recipe duration'}`);
+      if(n.duration.minimumSeconds)text('p',`Recipe range: ${time(n.duration.minimumSeconds)}–${time(n.duration.maximumSeconds)}`);
+      if(n.duration.note)text('p',n.duration.note,'muted');
+      text('h3','Resources');text('p',`${n.cooksRequired} cook${n.cooksRequired===1?'':'s'} · ${n.equipment.map(s=>s.replace(/_/g,' ')).join(', ')||'No equipment'}`);
+    }
+    links('Food inputs',recipe.edges.filter(e=>e.to===id).map(e=>e.from));
+    links('Food outputs / used by',recipe.edges.filter(e=>e.from===id).map(e=>e.to));
+    links('Must follow',n.dependsOn||[]);
+    links('Must precede',connections.filter(e=>e.kind==='order'&&e.from===id).map(e=>e.to));
+    text('h3','Node ID');text('code',id);
+    if(center)focusNode(id);
+  }
+  $('title').textContent=recipe.name;document.title=`${recipe.name} — recipe graph`;
+  $('summary').textContent=`${recipe.servings} servings · ${recipe.nodes.length} nodes · ${recipe.edges.length} food-flow links · ${connections.length-recipe.edges.length} ordering links`;
+  $('fit').onclick=fit;$('plus').onclick=()=>zoom(1.3);$('minus').onclick=()=>zoom(1/1.3);$('actual').onclick=()=>zoom(1/scale);
+  $('direction').onchange=draw;$('orders').onchange=highlight;$('clear').onclick=()=>select(null);
+  svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
+  svg.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,tx,ty};moved=false;});
+  svg.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4){moved=true;svg.classList.add('dragging');svg.setPointerCapture(e.pointerId);}if(moved){tx=drag.tx+dx;ty=drag.ty+dy;transform();}});
+  function endDrag(e){if(!drag||e.pointerId!==drag.id)return;drag=null;svg.classList.remove('dragging');if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);}
+  svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag);
+  svg.addEventListener('click',e=>{if(!moved&&!e.target.closest('.node'))select(null);});
+  svg.addEventListener('keydown',e=>{if(e.key==='Escape')select(null);});
+  new ResizeObserver(()=>fit()).observe($('canvas'));
+  draw();select(null);
+})();
+</script>
+</body>
+</html>
