@@ -10,6 +10,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from visualize_recipe_graph import render_graph
+from compile_recipe import compile_recipe
 
 
 class ScriptParser(HTMLParser):
@@ -35,7 +36,8 @@ class ScriptParser(HTMLParser):
 class ViewerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.graph = json.loads((ROOT / 'recipes/beef-onion-stir-fry.graph.json').read_text())
+        cls.recipe = json.loads((ROOT / 'schemas/recipe.example.json').read_text())
+        cls.graph = compile_recipe(cls.recipe)
 
     def test_embeds_all_data_and_offline_scripts(self):
         parser = ScriptParser()
@@ -78,7 +80,7 @@ class ViewerTests(unittest.TestCase):
     def test_cli_writes_output_and_preserves_it_on_invalid_input(self):
         with tempfile.TemporaryDirectory() as folder:
             source, output = Path(folder) / 'input.json', Path(folder) / 'nested' / 'output.html'
-            source.write_text(json.dumps(self.graph))
+            source.write_text(json.dumps(self.recipe))
             command = [sys.executable, str(ROOT / 'scripts/visualize_recipe_graph.py'), str(source), '-o', str(output)]
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -91,7 +93,7 @@ class ViewerTests(unittest.TestCase):
     def test_cli_cannot_overwrite_input(self):
         with tempfile.TemporaryDirectory() as folder:
             source = Path(folder) / 'input.json'
-            source.write_text(json.dumps(self.graph))
+            source.write_text(json.dumps(self.recipe))
             original = source.read_bytes()
             result = subprocess.run([sys.executable, str(ROOT / 'scripts/visualize_recipe_graph.py'), str(source), '-o', str(source)], capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)

@@ -1,0 +1,229 @@
+{
+  "$schema": "../../schemas/recipe.schema.json",
+  "schemaVersion": "1.0",
+  "recipeId": "ma-po-tofu",
+  "name": "Mapo Tofu",
+  "source": {
+    "url": "https://thewoksoflife.com/ma-po-tofu-real-deal/",
+    "publisher": "The Woks of Life",
+    "author": "Kaitlin"
+  },
+  "servings": 6,
+  "notes": [
+    "US customary quantities. Source ranges resolved as: 1 fresh chili (1–2), 7 dried chilies (6–8), 1 tbsp ground Sichuan peppercorn with 1/4 tsp reserved for garnish (1/2–1 1/2 tbsp), 1.5 tbsp doubanjiang (1–2).",
+    "Chicken broth is 2/3 cup, stored as 0.667 cup; the source allows water as a substitute.",
+    "Optional sesame oil, sugar, and peppercorn garnish are included.",
+    "Ginger and garlic quantities are minced volumes. Measurement is modeled before mincing, so these portions approximate the prepared amount.",
+    "Chilies toast in a small saucepan so the wok stays free; the source allows a wok or small saucepan. Skipping the toast with homemade chili oil is not modeled.",
+    "Equipment names describe requirements, not the actual kitchen inventory. Cleaning, serving, and rice are outside this recipe.",
+    "Measurement durations are generated planning estimates."
+  ],
+  "outputs": ["garnished_mapo_tofu"],
+  "ingredients": {
+    "neutral_oil": {
+      "name": "Neutral oil",
+      "portions": {
+        "chili_toasting_oil": {"quantity": 0.25, "unit": "cup", "name": "Neutral oil for toasting chilies"},
+        "aromatics_oil": {"quantity": 0.25, "unit": "cup", "name": "Neutral oil for aromatics"}
+      }
+    },
+    "thai_bird_chili": {"name": "Fresh Thai bird chilies", "portions": {"fresh_chilies": {"quantity": 1, "unit": "whole"}}},
+    "dried_red_chili": {"name": "Dried red chilies", "portions": {"dried_chilies": {"quantity": 7, "unit": "whole"}}},
+    "ground_sichuan_peppercorn": {
+      "name": "Ground Sichuan peppercorns",
+      "portions": {
+        "pork_peppercorns": {"quantity": 2.75, "unit": "tsp", "name": "Sichuan peppercorns for pork"},
+        "garnish_peppercorns": {"quantity": 0.25, "unit": "tsp", "name": "Sichuan peppercorns for garnish"}
+      }
+    },
+    "ginger": {"name": "Ginger", "portions": {"aromatic_ginger": {"quantity": 3, "unit": "tbsp"}}},
+    "garlic": {"name": "Garlic", "portions": {"aromatic_garlic": {"quantity": 3, "unit": "tbsp"}}},
+    "ground_pork": {"name": "Ground pork", "portions": {"pork": {"quantity": 8, "unit": "oz"}}},
+    "doubanjiang": {"name": "Spicy bean sauce (doubanjiang)", "portions": {"bean_sauce": {"quantity": 1.5, "unit": "tbsp"}}},
+    "low_sodium_chicken_broth": {"name": "Low-sodium chicken broth", "portions": {"broth": {"quantity": 0.667, "unit": "cup"}}},
+    "silken_tofu": {"name": "Silken tofu", "portions": {"tofu": {"quantity": 1, "unit": "lb"}}},
+    "water": {"name": "Water", "portions": {"slurry_water": {"quantity": 0.25, "unit": "cup", "name": "Water for slurry"}}},
+    "cornstarch": {"name": "Cornstarch", "portions": {"slurry_cornstarch": {"quantity": 1.5, "unit": "tsp", "name": "Cornstarch for slurry"}}},
+    "sesame_oil": {"name": "Sesame oil", "portions": {"finishing_sesame_oil": {"quantity": 0.25, "unit": "tsp"}}},
+    "sugar": {"name": "Sugar", "portions": {"finishing_sugar": {"quantity": 0.25, "unit": "tsp"}}},
+    "scallion": {"name": "Scallion", "portions": {"garnish_scallion": {"quantity": 1, "unit": "whole"}}}
+  },
+  "steps": [
+    {
+      "id": "slice_fresh_chilies",
+      "instruction": "Thinly slice the fresh chilies.",
+      "duration": {"plannedSeconds": 30, "basis": "estimate", "note": "Estimated preparation time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["vegetable_knife", "vegetable_board"],
+      "operation": "slice",
+      "inputs": ["fresh_chilies"],
+      "outputs": [{"id": "sliced_fresh_chilies", "name": "Sliced fresh chilies"}]
+    },
+    {
+      "id": "chop_dried_chilies",
+      "instruction": "Roughly chop the dried chilies.",
+      "duration": {"plannedSeconds": 60, "basis": "estimate", "note": "Estimated preparation time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["vegetable_knife", "vegetable_board"],
+      "operation": "chop",
+      "inputs": ["dried_chilies"],
+      "outputs": [{"id": "chopped_dried_chilies", "name": "Chopped dried chilies"}]
+    },
+    {
+      "id": "mince_ginger",
+      "instruction": "Peel and finely mince the ginger.",
+      "duration": {"plannedSeconds": 180, "basis": "estimate", "note": "Estimated preparation time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["vegetable_knife", "vegetable_board"],
+      "operation": "mince",
+      "inputs": ["aromatic_ginger"],
+      "outputs": [{"id": "minced_ginger", "name": "Minced ginger"}]
+    },
+    {
+      "id": "mince_garlic",
+      "instruction": "Peel and finely mince the garlic.",
+      "duration": {"plannedSeconds": 180, "basis": "estimate", "note": "Estimated preparation time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["vegetable_knife", "vegetable_board"],
+      "operation": "mince",
+      "inputs": ["aromatic_garlic"],
+      "outputs": [{"id": "minced_garlic", "name": "Minced garlic"}]
+    },
+    {
+      "id": "cube_tofu",
+      "instruction": "Cut the silken tofu into 1-inch (2.5 cm) cubes.",
+      "duration": {"plannedSeconds": 90, "basis": "estimate", "note": "Estimated preparation time; silken tofu is fragile."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["vegetable_knife", "vegetable_board"],
+      "operation": "cut",
+      "inputs": ["tofu"],
+      "outputs": [{"id": "tofu_cubes", "name": "Tofu cubes"}]
+    },
+    {
+      "id": "chop_scallion",
+      "instruction": "Finely chop the scallion.",
+      "duration": {"plannedSeconds": 30, "basis": "estimate", "note": "Estimated preparation time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["vegetable_knife", "vegetable_board"],
+      "operation": "chop",
+      "inputs": ["garnish_scallion"],
+      "outputs": [{"id": "chopped_scallion", "name": "Chopped scallion"}]
+    },
+    {
+      "id": "mix_slurry",
+      "instruction": "Stir the water and cornstarch together.",
+      "duration": {"plannedSeconds": 30, "basis": "estimate", "note": "Estimated mixing time; the source does this while the sauce simmers."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["slurry_bowl"],
+      "operation": "mix",
+      "inputs": ["slurry_water", "slurry_cornstarch"],
+      "outputs": [{"id": "cornstarch_slurry", "name": "Cornstarch slurry"}]
+    },
+    {
+      "id": "toast_chilies",
+      "instruction": "Over low heat, warm the oil with the fresh and dried chilies, stirring occasionally, until fragrant but not burnt. Set aside.",
+      "duration": {"plannedSeconds": 300, "basis": "source"},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["small_saucepan", "burner"],
+      "operation": "toast",
+      "inputs": ["chili_toasting_oil", "sliced_fresh_chilies", "chopped_dried_chilies"],
+      "outputs": [{"id": "chili_oil", "name": "Toasted chili oil with peppers"}]
+    },
+    {
+      "id": "fry_aromatics",
+      "instruction": "Heat the oil over medium heat. Add ginger; after 1 minute add garlic and fry 1 more minute.",
+      "duration": {"plannedSeconds": 150, "basis": "estimate", "note": "Estimated total including heating oil; source specifies 1 minute for ginger, then 1 minute with garlic."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "fry",
+      "inputs": ["aromatics_oil", "minced_ginger", "minced_garlic"],
+      "outputs": [{"id": "fried_aromatics", "name": "Fried ginger and garlic in oil"}]
+    },
+    {
+      "id": "brown_pork",
+      "instruction": "Turn heat to high, add pork, and break it up until cooked through.",
+      "duration": {"plannedSeconds": 180, "basis": "estimate", "note": "Estimated; the source cooks until done without a time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "stir_fry",
+      "inputs": ["fried_aromatics", "pork"],
+      "outputs": [{"id": "cooked_pork", "name": "Cooked pork with aromatics"}]
+    },
+    {
+      "id": "bloom_peppercorns",
+      "instruction": "Stir in the ground Sichuan peppercorns without letting them burn.",
+      "duration": {"plannedSeconds": 30, "basis": "source", "minimumSeconds": 15, "maximumSeconds": 30},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "stir_fry",
+      "inputs": ["cooked_pork", "pork_peppercorns"],
+      "outputs": [{"id": "spiced_pork", "name": "Pork with Sichuan peppercorn"}]
+    },
+    {
+      "id": "simmer_sauce",
+      "instruction": "Mix in the spicy bean sauce, then the broth; simmer about a minute.",
+      "duration": {"plannedSeconds": 90, "basis": "estimate", "note": "Includes adding bean sauce and broth; the source simmers about a minute."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "simmer",
+      "inputs": ["spiced_pork", "bean_sauce", "broth"],
+      "outputs": [{"id": "simmered_base", "name": "Simmered pork sauce"}]
+    },
+    {
+      "id": "thicken_sauce",
+      "instruction": "Add the slurry and let it bubble until thickened; thin with a little water or stock if needed.",
+      "duration": {"plannedSeconds": 45, "basis": "estimate", "note": "Estimated; the source thickens without a time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "simmer",
+      "inputs": ["simmered_base", "cornstarch_slurry"],
+      "outputs": [{"id": "thickened_sauce", "name": "Thickened pork sauce"}]
+    },
+    {
+      "id": "add_tofu",
+      "instruction": "Add the chili oil, peppers and all, then the tofu; toss gently and cook.",
+      "duration": {"plannedSeconds": 240, "basis": "source", "minimumSeconds": 180, "maximumSeconds": 300},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "simmer",
+      "inputs": ["thickened_sauce", "chili_oil", "tofu_cubes"],
+      "outputs": [{"id": "tofu_in_sauce", "name": "Tofu in chili pork sauce"}]
+    },
+    {
+      "id": "finish_dish",
+      "instruction": "Stir in the sesame oil, sugar, and scallions until the scallions just wilt.",
+      "duration": {"plannedSeconds": 30, "basis": "estimate", "note": "Estimated; the source cooks until scallions wilt."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["wok", "burner", "spatula"],
+      "operation": "mix",
+      "inputs": ["tofu_in_sauce", "finishing_sesame_oil", "finishing_sugar", "chopped_scallion"],
+      "outputs": [{"id": "mapo_tofu", "name": "Mapo tofu"}]
+    },
+    {
+      "id": "garnish_dish",
+      "instruction": "Sprinkle with the reserved Sichuan peppercorn powder.",
+      "duration": {"plannedSeconds": 10, "basis": "estimate", "note": "Estimated garnish time."},
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "operation": "garnish",
+      "inputs": ["mapo_tofu", "garnish_peppercorns"],
+      "outputs": [{"id": "garnished_mapo_tofu", "name": "Garnished mapo tofu"}]
+    }
+  ]
+}

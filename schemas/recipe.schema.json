@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "This file describes valid recipe JSON; it is not a recipe itself. 'properties' defines fields, 'required' lists mandatory fields, and 'additionalProperties: false' rejects unknown fields. '$defs' holds reusable rules, each named by '$anchor'; '$ref': '#name' points to the rule with that anchor. These $comment entries explain the rules without changing validation.",
+  "title": "Step-oriented recipe",
+  "description": "Recipe input. Compile ingredients and steps into the internal dependency graph before scheduling or visualization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recipeId", "name", "source", "servings", "notes", "outputs", "ingredients", "steps"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schemaVersion": {"const": "1.0"},
+    "recipeId": {"$ref": "#slug"},
+    "name": {"$ref": "#nonEmptyString"},
+    "source": {
+      "$comment": "Keep the original recipe's URL, publisher, and author so its instructions and timing claims can be traced back to their source.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "publisher", "author"],
+      "properties": {
+        "url": {"type": "string", "format": "uri", "pattern": "^https?://"},
+        "publisher": {"$ref": "#nonEmptyString"},
+        "author": {"$ref": "#nonEmptyString"}
+      }
+    },
+    "servings": {"type": "integer", "minimum": 1},
+    "notes": {"type": "array", "items": {"$ref": "#nonEmptyString"}},
+    "outputs": {
+      "$comment": "These are IDs of finished food states produced by steps, not step IDs. Intermediate outputs such as sliced beef belong to their producing step and are consumed by a later step.",
+      "description": "IDs of terminal food_state nodes representing the completed recipe.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#slug"}
+    },
+    "ingredients": {
+      "$comment": "Keys are canonical ingredient identities, such as neutral_oil, shared across recipes. Each ingredient lists its portions; the compiler generates one measure action per ingredient that produces all of them.",
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"$ref": "#slug"},
+      "additionalProperties": {"$ref": "#ingredient"}
+    },
+    "steps": {
+      "$comment": "Each step becomes an action in the internal graph. Its inputs and outputs generate food-flow edges. List order does not force execution order; inputs and dependsOn establish dependencies.",
+      "type": "array", "minItems": 1, "items": {"$ref": "#step"}
+    }
+  },
+  "$defs": {
+    "slug": {
+      "$anchor": "slug",
+      "$comment": "IDs start with a lowercase letter and then use lowercase letters, digits, underscores, or hyphens. This rule checks spelling only; the compiler separately checks node ID uniqueness and references.",
+      "type": "string", "pattern": "^[a-z][a-z0-9_-]*$"
+    },
+    "nonEmptyString": {"$anchor": "nonEmptyString", "type": "string", "minLength": 1},
+    "ingredient": {
+      "$anchor": "ingredient",
+      "$comment": "The object key is the shared identity, such as neutral_oil; name is the display label. Use consistent identities across recipes to support future matching. Identities are author-supplied, not checked against a catalog. Portion keys are recipe-local food-state IDs that steps consume. All portions of one ingredient must use volume units, weight units, or whole counts so the compiler can total them.",
+      "description": "One ingredient and the separate portions measured from it. The object key is its canonical identity.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "portions"],
+      "properties": {
+        "name": {"$ref": "#nonEmptyString"},
+        "portions": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {"$ref": "#slug"},
+          "additionalProperties": {"$ref": "#portion"}
+        },
+        "measure": {
+          "$comment": "Optional overrides for the generated measure action. Defaults: 30 seconds plus 15 per additional portion, and equipment chosen from portion units.",
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "duration": {"$ref": "#duration"},
+            "equipment": {"type": "array", "uniqueItems": true, "items": {"$ref": "#slug"}}
+          }
+        }
+      }
+    },
+    "portion": {
+      "$anchor": "portion",
+      "$comment": "Quantity must be positive, and unit must be one of the listed values; whole means a count of items. The optional name labels the measured portion; otherwise the compiler uses the ingredient name and amount. Name portions when those labels would be ambiguous.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["quantity", "unit"],
+      "properties": {
+        "quantity": {"type": "number", "exclusiveMinimum": 0},
+        "unit": {"enum": ["g", "kg", "oz", "lb", "ml", "l", "tsp", "tbsp", "cup", "whole"]},
+        "name": {"$ref": "#nonEmptyString"}
+      }
+    },
+    "foodState": {
+      "$anchor": "foodState",
+      "$comment": "A step output describes food after an action, such as measured soy sauce or sliced beef. It needs an ID and display name. Ingredient identity, quantity, and unit are optional, but dependentRequired makes them an all-or-none group.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": {"$ref": "#slug"},
+        "name": {"$ref": "#nonEmptyString"},
+        "ingredient": {"$ref": "#slug"},
+        "quantity": {"type": "number", "exclusiveMinimum": 0},
+        "unit": {"enum": ["g", "kg", "oz", "lb", "ml", "l", "tsp", "tbsp", "cup", "whole"]}
+      },
+      "dependentRequired": {
+        "ingredient": ["quantity", "unit"],
+        "quantity": ["ingredient", "unit"],
+        "unit": ["ingredient", "quantity"]
+      }
+    },
+    "duration": {
+      "$anchor": "duration",
+      "$comment": "All times are in seconds. plannedSeconds is the planning value; basis says whether it comes from the source recipe or is an estimate. If a range is supplied, both bounds are required, and graph validation checks minimum <= planned <= maximum. The conditional rule below requires an explanation note for estimates.",
+      "description": "Planning duration, not an automatic completion trigger. Bounds describe the source range when one is supplied; the validator checks their ordering.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plannedSeconds", "basis"],
+      "properties": {
+        "plannedSeconds": {"type": "integer", "minimum": 1},
+        "basis": {"enum": ["source", "estimate"]},
+        "minimumSeconds": {"type": "integer", "minimum": 1},
+        "maximumSeconds": {"type": "integer", "minimum": 1},
+        "note": {"$ref": "#nonEmptyString"}
+      },
+      "dependentRequired": {"minimumSeconds": ["maximumSeconds"], "maximumSeconds": ["minimumSeconds"]},
+      "allOf": [{"if": {"properties": {"basis": {"const": "estimate"}}}, "then": {"required": ["note"]}}]
+    },
+    "step": {
+      "$anchor": "step",
+      "$comment": "A step describes one operation, its food inputs and outputs, and the people and equipment it needs. Every step needs at least one input and output. The compiler separately checks references, cycles, portion reuse, and whether all food contributes to a declared recipe output.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "instruction",
+        "duration",
+        "attention",
+        "cooksRequired",
+        "equipment",
+        "operation",
+        "inputs",
+        "outputs"
+      ],
+      "properties": {
+        "id": {"$ref": "#slug"},
+        "instruction": {"$ref": "#nonEmptyString"},
+        "duration": {"$ref": "#duration"},
+        "attention": {"enum": ["active", "passive"]},
+        "cooksRequired": {"type": "integer", "minimum": 0},
+        "equipment": {
+          "description": "Equipment requirements during this action. A scheduler must map these names to available physical resources; they are not food nodes.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#slug"}
+        },
+        "dependsOn": {
+          "$comment": "Optional extra ordering between steps, beyond food flow. For example, sear_onions can depend on sear_beef because they use the same wok in that order. Omitting this field means no extra ordering; food-input dependencies still apply.",
+          "description": "Action IDs that must complete first, in addition to food-input dependencies. Useful for ordered use of the same wok.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#slug"}
+        },
+        "operation": {
+          "$comment": "A structured action name such as slice or mix, separate from the human instruction. measure is reserved: the compiler generates measure actions from ingredient portions. Matching operation names alone does not prove tasks can be batched.",
+          "$ref": "#slug",
+          "not": {"const": "measure"}
+        },
+        "inputs": {
+          "$comment": "References to portion IDs or food-state IDs produced by other steps. These are food references, not action IDs. Referencing a prior output creates a dependency on its producing step.",
+          "type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#slug"}
+        },
+        "outputs": {
+          "$comment": "Definitions of the food states this step produces. Each gets a new recipe-local ID, which later steps can reference in inputs or the recipe can declare as a finished output.",
+          "type": "array", "minItems": 1, "items": {"$ref": "#foodState"}
+        }
+      },
+      "allOf": [
+        {
+          "$comment": "All allOf rules apply. This rule requires at least one cook for active work and zero cooks during passive waiting. Passive steps can still occupy equipment.",
+          "if": {"properties": {"attention": {"const": "active"}}},
+          "then": {"properties": {"cooksRequired": {"minimum": 1}}},
+          "else": {"properties": {"cooksRequired": {"const": 0}}}
+        }
+      ]
+    }
+  }
+}

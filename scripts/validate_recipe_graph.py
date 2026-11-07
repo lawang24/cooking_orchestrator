@@ -1,7 +1,8 @@
-"""Validate JSON structure and graph semantics.
+"""Validate graph semantics of a compiled recipe graph.
 
-Install: python3 -m pip install -r requirements-validation.txt
-Run: python3 scripts/validate_recipe_graph.py recipes/beef-onion-stir-fry.graph.json
+Field structure is validated on recipe input by compile_recipe.py against
+schemas/recipe.schema.json; this command checks the graph it exports.
+Run: python3 scripts/validate_recipe_graph.py visualizations/beef-onion-stir-fry.graph.json
 
 This validates dependencies, not cooking safety, recipe accuracy, quantity
 conservation through transformations, or feasibility in a particular kitchen.
@@ -13,20 +14,9 @@ import json
 from pathlib import Path
 import sys
 
-from jsonschema import Draft202012Validator, FormatChecker
-
-
-SCHEMA_PATH = Path(__file__).resolve().parents[1] / 'schemas/recipe-graph.schema.json'
-
 
 def validate_graph(graph):
-    schema = json.loads(SCHEMA_PATH.read_text())
-    Draft202012Validator.check_schema(schema)
-    validator = Draft202012Validator(schema, format_checker=FormatChecker())
-    errors = [f"{error.json_path}: {error.message}" for error in validator.iter_errors(graph)]
-    if errors:
-        return errors
-
+    errors = []
     nodes = {node['id']: node for node in graph['nodes']}
     if len(nodes) != len(graph['nodes']):
         return ['Node IDs must be unique.']
@@ -120,6 +110,9 @@ def main():
         errors = validate_graph(graph)
     except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
+        return 1
+    except (KeyError, TypeError) as error:
+        print(f'Malformed graph; export it with compile_recipe.py: {error!r}', file=sys.stderr)
         return 1
     if errors:
         print('\n'.join(errors), file=sys.stderr)

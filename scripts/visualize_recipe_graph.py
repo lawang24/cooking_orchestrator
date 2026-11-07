@@ -1,4 +1,4 @@
-"""Render any valid recipe graph as a self-contained, offline HTML diagram."""
+"""Compile a step-oriented recipe and render a self-contained, offline diagram."""
 
 import argparse
 import json
@@ -7,9 +7,14 @@ import sys
 import webbrowser
 
 from validate_recipe_graph import validate_graph
+from compile_recipe import compile_recipe
 
 
 HERE = Path(__file__).resolve().parent
+
+
+def render_recipe(recipe):
+    return render_graph(compile_recipe(recipe))
 
 
 def render_graph(graph):
@@ -31,15 +36,15 @@ def render_graph(graph):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('graph', type=Path, help='Recipe graph JSON file')
+    parser.add_argument('recipe', type=Path, help='Step-oriented recipe JSON file')
     parser.add_argument('-o', '--output', type=Path, help='Output HTML (default: visualizations/<recipeId>.html)')
     parser.add_argument('--open', action='store_true', help='Open the generated file in your default browser')
     args = parser.parse_args()
     try:
-        graph = json.loads(args.graph.read_text(encoding='utf-8'))
-        document = render_graph(graph)
-        output = args.output or Path('visualizations') / (graph['recipeId'] + '.html')
-        if output.resolve() == args.graph.resolve():
+        recipe = json.loads(args.recipe.read_text(encoding='utf-8'))
+        document = render_recipe(recipe)
+        output = args.output or Path('visualizations') / (recipe['recipeId'] + '.html')
+        if output.resolve() == args.recipe.resolve():
             raise ValueError('Output must differ from the input JSON file.')
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(document, encoding='utf-8')
