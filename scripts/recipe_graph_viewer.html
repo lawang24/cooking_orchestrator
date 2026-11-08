@@ -7,21 +7,110 @@
 <style>
 :root{color-scheme:light dark;--bg:light-dark(#f5f6f8,#15191e);--panel:light-dark(#fff,#20262d);--text:light-dark(#18232e,#ecf1f5);--muted:light-dark(#566575,#a9bac9);--line:light-dark(#c5ced7,#536375);--edge:light-dark(#63778a,#9daebe);--ingredient:light-dark(#e3f2ec,#173d33);--action:light-dark(#e7edff,#263555);--state:light-dark(#fff0d5,#493a20);--focus:light-dark(#315fcb,#8cb6ff)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,sans-serif}header{padding:20px 24px 12px}h1{font-size:23px;line-height:1.25;margin:0 0 5px}p{margin:0 0 12px}.muted{color:var(--muted)}.toolbar,.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.toolbar{padding:12px 24px}.legend{margin-top:12px;gap:18px;font-size:13px}.key{display:inline-flex;align-items:center;gap:6px}.swatch{width:16px;height:16px;border:1px solid var(--line)}.ingredient{background:var(--ingredient);border-radius:8px}.action{background:var(--action)}.food_state{background:var(--state);border-radius:4px}.line{width:24px;border-top:2px solid var(--edge)}.line.order{border-top-style:dashed}button,select{font:inherit;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}button:focus-visible,select:focus-visible,.node:focus-visible{outline:3px solid var(--focus);outline-offset:3px}.toolbar label{display:flex;gap:6px;align-items:center}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 310px;border-top:1px solid var(--line);height:calc(100dvh - 205px);min-height:470px}.canvas{overflow:hidden;position:relative;touch-action:none}.canvas svg{width:100%;height:100%;display:block;cursor:grab}.canvas svg.dragging{cursor:grabbing}aside{padding:20px;background:var(--panel);border-left:1px solid var(--line);overflow:auto}h2{font-size:18px;margin:0 0 12px}h3{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:20px 0 6px}ul{padding-left:18px;margin:0}li{margin:4px 0}a{color:var(--focus)}.edge{fill:none;stroke:var(--edge);stroke-width:1.5}.edge.order{stroke-dasharray:6 5}.node{cursor:pointer}.node rect{stroke:var(--line);stroke-width:1.2}.node.ingredient-node rect{fill:var(--ingredient)}.node.action-node rect{fill:var(--action)}.node.food_state-node rect{fill:var(--state)}.node.selected rect{stroke:var(--focus);stroke-width:3}.node text{fill:var(--text);pointer-events:none;font-size:14px}.node .category{font-size:11px;fill:var(--muted);letter-spacing:.04em}.node .meta{font-size:12px;fill:var(--muted)}.dim{opacity:.16}.edge.related{stroke:var(--focus);stroke-width:2.5}#zoom{min-width:45px;text-align:center;font-variant-numeric:tabular-nums}.hint{position:absolute;bottom:12px;left:12px;background:var(--panel);color:var(--muted);padding:5px 10px;border-radius:4px;font-size:12px;pointer-events:none}.detail-button{padding:3px 6px;font-size:13px;text-align:left}.node-list{display:flex;flex-wrap:wrap;gap:6px}summary{cursor:pointer}.notes{font-size:13px}
-@media(max-width:760px){header{padding:16px}.toolbar{padding:10px 16px}.workspace{display:flex;flex-direction:column;height:auto;min-height:0}.canvas{height:65dvh;min-height:380px}aside{border-left:0;border-top:1px solid var(--line);overflow:visible}.legend{gap:10px}h1{font-size:20px}}
+[hidden]{display:none!important}
+:root{
+  --bg:light-dark(#faf8f2,#181e1b);--panel:light-dark(#fffefa,#222a25);
+  --text:light-dark(#20342c,#f0f2e9);--muted:light-dark(#56685d,#bdc8bc);
+  --line:light-dark(#d6d9cc,#505c54);--accent:light-dark(#285741,#b9d8b7);
+  --on-accent:light-dark(#fff,#1b3022);
+}
+body{min-height:100dvh;font-family:"DM Sans",system-ui,sans-serif}
+button:disabled{opacity:.4;cursor:default}
+button:not(:disabled):hover{border-color:var(--accent)}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+#overview-toggle{position:fixed;top:18px;right:clamp(16px,3vw,40px);z-index:1;min-height:44px;border-radius:24px;padding:8px 18px}
+#stepbar{min-height:100dvh;display:grid;grid-template-rows:1fr auto 1fr;place-items:center;padding:16px clamp(16px,3vw,40px)}
+.action-focus{grid-row:2}
+#map-button{grid-row:3;place-self:end;width:min(240px,100%);padding:10px 12px;border-radius:12px;text-align:left}
+.map-caption{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.map-caption strong{font-size:13px}.map-caption small{color:var(--muted);font-variant-numeric:tabular-nums}
+#minimap{width:100%;height:98px;display:block;margin-top:6px}
+.map-link{fill:none;stroke:var(--line);stroke-width:2}.map-link.order{stroke-dasharray:4 3}
+.map-node{fill:var(--panel);stroke:var(--muted);stroke-width:2}
+.map-node.done{fill:var(--accent);stroke:var(--accent)}.map-link.done{stroke:var(--accent)}
+#map-current{fill:none;stroke:light-dark(#ae500e,#ffc078);stroke-width:3}
+.node.done .category{fill:var(--accent);font-weight:700}
+.step-status{margin-left:auto;color:var(--accent);font-size:13px}
+@media(max-height:520px){#stepbar{grid-template-rows:56px auto 1fr;row-gap:12px}}
+@media(max-width:600px){#map-button{width:190px}#minimap{height:76px}}
+.action-focus{width:min(100%,700px);text-align:center;overflow-wrap:anywhere;font-family:system-ui,sans-serif}
+#step-instruction{margin:0;font-size:clamp(2rem,4vw,3.6rem);font-weight:500;line-height:1.2;text-wrap:balance}
+#step-timing{margin:0 0 20px;font-size:14px;color:var(--accent);font-weight:600}
+#step-tools{margin:18px 0 0;color:var(--muted)}
+.step-controls{display:flex;justify-content:center;gap:12px;margin-top:40px}
+.step-controls button{min-height:46px;padding:10px 22px;border-radius:24px;font-weight:600}
+#next{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+#overview{min-height:100dvh;display:flex;flex-direction:column}
+#overview header{padding:20px clamp(16px,3vw,40px);border-bottom:1px solid var(--line);min-height:80px;padding-right:150px}
+#overview h1{font:500 30px/1.3 Georgia,serif;margin:0}
+.panel-nav{display:flex;gap:8px;flex-wrap:wrap;padding:16px clamp(16px,3vw,40px)}
+.panel-nav button{min-height:44px;border-radius:24px;padding:8px 18px}
+.panel-nav button[aria-pressed=true]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.info-pane{margin:0 auto;padding:24px;width:min(100%,720px);overflow-wrap:anywhere}
+.info-pane h2{font:500 28px/1.3 Georgia,serif}
+#progress-list{padding:0;list-style:none}
+#progress-list button{width:100%;display:flex;align-items:baseline;gap:12px;text-align:left;padding:10px 14px;min-height:44px}
+#progress-list button[aria-current=step]{border-color:var(--accent);font-weight:650;background:var(--ingredient)}
+.step-number{min-width:2ch;color:var(--muted);font-variant-numeric:tabular-nums}
+#graph-panel{flex:1;display:flex;flex-direction:column}
+.graph-summary{padding:0 24px}.workspace{flex:1;height:auto;min-height:440px}
+.workspace aside{max-height:calc(100dvh - 180px)}
+@media(max-width:760px){
+  .workspace{display:flex;flex-direction:column;min-height:0}
+  .canvas{height:55dvh;min-height:320px}
+  .workspace aside{max-height:none;border-left:0;border-top:1px solid var(--line)}
+  .legend{gap:10px}.toolbar,.graph-summary{padding-inline:16px}
+  .info-pane{padding:16px}.step-controls{margin-top:28px}
+}
 </style>
 </head>
 <body>
-<header>
-  <h1 id="title">Recipe graph</h1>
-  <div id="summary" class="muted"></div>
-  <div class="legend" aria-label="Graph legend">
-    <span class="key"><span class="swatch ingredient"></span>Ingredient</span>
-    <span class="key"><span class="swatch action"></span>Action</span>
-    <span class="key"><span class="swatch food_state"></span>Food state</span>
-    <span class="key"><span class="line"></span>Food flow</span>
-    <span class="key"><span class="line order"></span>Required order</span>
+<button id="overview-toggle" type="button" aria-expanded="false" aria-controls="overview">Overview</button>
+<main id="stepbar" aria-label="Current cooking action">
+  <div class="action-focus">
+    <div aria-live="polite" aria-atomic="true">
+      <p id="step-timing"></p>
+      <h1 id="step-instruction"></h1>
+      <p id="step-tools"></p>
+    </div>
+    <nav class="step-controls" aria-label="Step navigation">
+      <button id="previous" type="button" aria-label="Previous step">← Previous</button>
+      <button id="next" type="button" aria-label="Next step">Next →</button>
+    </nav>
   </div>
-</header>
+  <button id="map-button" type="button" title="Open whole graph" aria-controls="graph-panel">
+    <span class="map-caption"><strong>Recipe map</strong><small id="map-count"></small></span>
+    <svg id="minimap" aria-hidden="true"><g id="map-links"></g><g id="map-nodes"></g><circle id="map-current" r="9"></circle></svg>
+  </button>
+</main>
+<section id="overview" aria-label="Overview" hidden>
+  <header><h1>Overview</h1></header>
+  <nav class="panel-nav" aria-label="Overview sections">
+    <button type="button" aria-controls="progress-panel" aria-pressed="true">Progress</button>
+    <button type="button" aria-controls="graph-panel" aria-pressed="false">Whole graph</button>
+    <button type="button" aria-controls="recipes-panel" aria-pressed="false">Recipes</button>
+  </nav>
+  <section id="progress-panel" class="info-pane" aria-label="Progress">
+    <h2 id="step-count"></h2>
+    <ol id="progress-list"></ol>
+  </section>
+  <section id="recipes-panel" class="info-pane" aria-label="Recipes" hidden>
+    <h2>Recipes</h2>
+    <ul id="recipe-list"></ul>
+    <h3>Recipe notes</h3><ul id="recipe-notes"></ul>
+  </section>
+  <section id="graph-panel" aria-label="Whole graph" hidden>
+  <div class="graph-summary">
+    <h2 id="title"></h2>
+    <div id="summary" class="muted"></div>
+    <div class="legend" aria-label="Graph legend">
+      <span class="key"><span class="swatch ingredient"></span>Ingredient</span>
+      <span class="key"><span class="swatch action"></span>Action</span>
+      <span class="key"><span class="swatch food_state"></span>Food state</span>
+      <span class="key"><span class="line"></span>Food flow</span>
+      <span class="key"><span class="line order"></span>Required order</span>
+    </div>
+  </div>
 <div class="toolbar" aria-label="Diagram controls">
   <button id="fit" type="button">Fit graph</button>
   <button id="minus" type="button" aria-label="Zoom out">−</button>
@@ -32,7 +121,7 @@
   <label><input id="orders" type="checkbox" checked> Show ordering</label>
   <button id="clear" type="button">Clear selection</button>
 </div>
-<main class="workspace">
+<div class="workspace">
   <div class="canvas" id="canvas">
     <svg id="diagram" role="group" aria-label="Recipe dependency graph. Select a node for details.">
       <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge)"></path></marker></defs>
@@ -41,26 +130,48 @@
     <div class="hint">Scroll to zoom · Drag to pan · Select a node</div>
   </div>
   <aside aria-label="Node details"><div id="details" aria-live="polite"></div></aside>
-</main>
+</div>
+  </section>
+</section>
 <script>/* DAGRE_LIBRARY */</script>
 <script id="recipe-data" type="application/json">RECIPE_GRAPH_DATA</script>
+<script id="step-data" type="application/json">RECIPE_STEP_DATA</script>
 <script>
 (() => {
   'use strict';
   const recipe = JSON.parse(document.getElementById('recipe-data').textContent);
+  const steps = JSON.parse(document.getElementById('step-data').textContent);
   const byId = new Map(recipe.nodes.map(n => [n.id,n]));
   const $ = id => document.getElementById(id);
   const svg = $('diagram'), viewport = $('viewport'), detail = $('details');
   const ns = 'http://www.w3.org/2000/svg';
   const labels = {ingredient:'INGREDIENT',action:'ACTION',food_state:'FOOD STATE'};
   let selected = null, layout, scale = 1, tx = 0, ty = 0, drag = null, moved = false;
+  let stepIndex = 0;
   const connections = recipe.edges.map(e => ({...e,kind:'food'}));
   recipe.nodes.filter(n => n.type === 'action').forEach(n => n.dependsOn.forEach(id => connections.push({from:id,to:n.id,kind:'order'})));
+  const dependencies=new dagre.graphlib.Graph();
+  for(const node of recipe.nodes)dependencies.setNode(node.id);
+  for(const {from,to} of connections)dependencies.setEdge(from,to);
+
+  // Connect actions through their intermediate food states. Multiple portions
+  // from one action create just one link to the action that uses them.
+  const actionLinks=[];
+  for(const to of steps){
+    const parents=new Map(byId.get(to).dependsOn.map(from=>[from,'order']));
+    for(const input of dependencies.predecessors(to)){
+      if(byId.get(input).type==='food_state'){
+        const [producer]=dependencies.predecessors(input);
+        parents.set(producer,'food');
+      }
+    }
+    for(const [from,kind] of parents)actionLinks.push({from,to,kind});
+  }
   function name(n) { return n.name || n.id.replace(/[_-]/g,' ').replace(/^./, c => c.toUpperCase()); }
   function time(s) { return s >= 60 ? `${Math.floor(s/60)}m${s%60 ? ` ${s%60}s` : ''}` : `${s}s`; }
   function meta(n) {
     if(n.type === 'ingredient') return `${n.quantity} ${n.unit}`;
-    if(n.type === 'action') return `${time(n.duration.plannedSeconds)} · ${n.attention}${n.duration.basis === 'estimate' ? ' · est.' : ''}`;
+    if(n.type === 'action') return `${time(n.scheduled_duration_seconds)} · ${n.attention}${n.scheduled_duration_source === 'estimate' ? ' · est.' : ''}`;
     return recipe.outputs.includes(n.id) ? 'Finished dish' : 'Intermediate state';
   }
   function element(tag, attrs={}, text) {
@@ -80,15 +191,97 @@
     });
     return result.filter(Boolean);
   }
+  function makeLayout(nodes,links,options,nodeSize){
+    const graph=new dagre.graphlib.Graph({multigraph:true}).setGraph({...options,ranker:'longest-path'}).setDefaultEdgeLabel(()=>({}));
+    nodes.forEach(n=>graph.setNode(n.id,nodeSize(n)));
+    links.forEach((e,i)=>graph.setEdge(e.from,e.to,{weight:e.kind==='food'?3:1},String(i)));
+    // Align the starting nodes at the top and the terminal nodes at the bottom.
+    const rank=new Map();
+    for(const id of dagre.graphlib.alg.topsort(graph)){
+      const parents=graph.predecessors(id);
+      const depth=parents.reduce((max,parent)=>Math.max(max,rank.get(parent)+1),0);
+      rank.set(id,depth);
+    }
+    const bottom=Math.max(...rank.values());
+    for(const id of graph.sinks())rank.set(id,bottom);
+    for(const edge of graph.edges())graph.edge(edge).minlen=rank.get(edge.w)-rank.get(edge.v);
+    dagre.layout(graph);
+    return graph;
+  }
+  function edgePath(graph,e,i){
+    const points=graph.edge({v:e.from,w:e.to,name:String(i)}).points;
+    return points.map((p,j)=>`${j?'L':'M'} ${p.x} ${p.y}`).join(' ');
+  }
+  const confirmed=new Set();
+  const done=new Set();
+  const actions=steps.map(id=>byId.get(id));
+  const mapLayout=makeLayout(actions,actionLinks,
+    {rankdir:'TB',ranksep:12,nodesep:15,marginx:10,marginy:10},()=>({width:10,height:10}));
+  function drawMinimap(){
+    const {width,height}=mapLayout.graph();
+    $('minimap').setAttribute('viewBox',`0 0 ${width} ${height}`);
+    actionLinks.forEach((e,i)=>{
+      $('map-links').append(element('path',{class:`map-link ${e.kind}`,'data-from':e.from,'data-to':e.to,d:edgePath(mapLayout,e,i)}));
+    });
+    for(const n of actions){
+      const {x,y}=mapLayout.node(n.id);
+      $('map-nodes').append(element('circle',{class:'map-node','data-id':n.id,cx:x,cy:y,r:5}));
+    }
+  }
+  function updateProgress(){
+    for(const node of $('map-nodes').children){
+      node.classList.toggle('done',done.has(node.dataset.id));
+    }
+    actionLinks.forEach((e,i)=>{
+      $('map-links').children[i].classList.toggle('done',done.has(e.from)&&done.has(e.to));
+    });
+    const current=mapLayout.node(steps[stepIndex]);
+    $('map-current').setAttribute('cx',current.x);
+    $('map-current').setAttribute('cy',current.y);
+    const count=steps.filter(id=>done.has(id)).length;
+    $('map-count').textContent=`${count} / ${steps.length} done`;
+    $('map-button').setAttribute('aria-label',`Open whole graph. ${count} of ${steps.length} actions done.`);
+    steps.forEach((id,i)=>{
+      $('progress-list').children[i].querySelector('.step-status').textContent=done.has(id)?'✓ Done':'';
+    });
+    if(layout)highlight();
+  }
+  function rebuildDone(){
+    done.clear();
+    const pending=[...confirmed];
+    while(pending.length){
+      const id=pending.pop();
+      if(done.has(id))continue;
+      done.add(id);
+      pending.push(...dependencies.predecessors(id));
+      if(byId.get(id).type==='action'){
+        for(const output of dependencies.successors(id)){
+          if(byId.get(output).type==='food_state')done.add(output);
+        }
+      }
+    }
+  }
+  function completeAndAdvance(){
+    confirmed.add(steps[stepIndex]);
+    rebuildDone();
+    goToStep(stepIndex+1);
+  }
+  function rewindTo(index){
+    for(const id of steps.slice(index))confirmed.delete(id);
+    rebuildDone();
+    goToStep(index);
+  }
+  function previousStep(){
+    // Finish keeps the last action in view. Undo it before moving further back.
+    if(stepIndex===steps.length-1 && done.has(steps[stepIndex]))rewindTo(stepIndex);
+    else if(stepIndex>0)rewindTo(stepIndex-1);
+  }
   function draw() {
-    layout = new dagre.graphlib.Graph({multigraph:true}).setGraph({rankdir:$('direction').value,ranksep:65,nodesep:24,marginx:25,marginy:25}).setDefaultEdgeLabel(()=>({}));
-    recipe.nodes.forEach(n => layout.setNode(n.id,{width:244,height:70+lines(name(n)).length*19}));
-    connections.forEach((e,i)=>layout.setEdge(e.from,e.to,{weight:e.kind==='food'?3:1},String(i)));
-    dagre.layout(layout);
+    layout=makeLayout(recipe.nodes,connections,{rankdir:$('direction').value,ranksep:65,nodesep:24,marginx:25,marginy:25},
+      n=>({width:244,height:70+lines(name(n)).length*19}));
     $('nodes').replaceChildren(); $('edges').replaceChildren();
     connections.forEach((e,i) => {
-      const points=layout.edge({v:e.from,w:e.to,name:String(i)}).points;
-      const path=element('path',{d:points.map((p,j)=>`${j?'L':'M'} ${p.x} ${p.y}`).join(' '),class:`edge ${e.kind}`,'marker-end':'url(#arrow)','data-index':i});
+      const path=element('path',{d:edgePath(layout,e,i),class:`edge ${e.kind}`,'marker-end':'url(#arrow)','data-index':i});
       $('edges').append(path);
     });
     recipe.nodes.forEach(n => {
@@ -110,25 +303,61 @@
   function highlight(){
     const near=new Set(selected?[selected]:[]);
     connections.filter(e=>e.kind==='food'||$('orders').checked).forEach(e=>{if(e.from===selected||e.to===selected){near.add(e.from);near.add(e.to);}});
-    $('nodes').querySelectorAll('.node').forEach(el=>{el.classList.toggle('selected',el.dataset.id===selected);el.classList.toggle('dim',!!selected&&!near.has(el.dataset.id));el.setAttribute('aria-pressed',String(el.dataset.id===selected));});
+    $('nodes').querySelectorAll('.node').forEach(el=>{
+      const id=el.dataset.id, current=id===selected;
+      const n=byId.get(id), completed=done.has(id);
+      el.classList.toggle('done',completed);
+      el.querySelector('.category').textContent=labels[n.type]+(completed?' · ✓ DONE':'');
+      el.setAttribute('aria-label',`${labels[n.type]}: ${name(n)}. ${meta(n)}${completed?'. Done':''}`);
+      el.classList.toggle('selected',current);
+      el.classList.toggle('dim',!!selected&&!near.has(id));
+      el.setAttribute('aria-pressed',String(current));
+    });
     $('edges').querySelectorAll('.edge').forEach(el=>{const e=connections[Number(el.dataset.index)],related=e.from===selected||e.to===selected;el.style.display=e.kind==='order'&&!$('orders').checked?'none':'';el.classList.toggle('dim',!!selected&&!related);el.classList.toggle('related',related);});
   }
   function text(tag,value,cls){const el=document.createElement(tag);el.textContent=value;if(cls)el.className=cls;detail.append(el);return el;}
-  function links(title,ids){if(!ids.length)return;text('h3',title);const list=text('div','', 'node-list');ids.forEach(id=>{const b=document.createElement('button');b.className='detail-button';b.type='button';b.textContent=name(byId.get(id));b.addEventListener('click',()=>select(id,true));list.append(b);});}
+  function links(title,ids){
+    if(!ids.length)return;
+    text('h3',title);
+    const list=text('div','','node-list');
+    for(const id of ids){
+      const n=byId.get(id), button=document.createElement('button');
+      button.type='button';button.className='detail-button';
+      button.textContent=name(n)+(n.type==='ingredient'?` · ${n.quantity} ${n.unit}`:'');
+      button.onclick=()=>select(id,true);
+      list.append(button);
+    }
+  }
+  function goToStep(index){
+    stepIndex=Math.max(0,Math.min(steps.length-1,index));
+    const n=byId.get(steps[stepIndex]);
+    $('step-instruction').textContent=n.instruction;
+    $('step-timing').textContent=`${time(n.scheduled_duration_seconds)} planned${n.scheduled_duration_source==='estimate'?' (estimate)':''} · ${n.attention==='passive'?'Hands-off':'Hands-on'}`;
+    $('step-tools').textContent=n.equipment.length?'Use '+n.equipment.map(id=>id.replace(/_/g,' ')).join(', '):'';
+    $('step-tools').hidden=!n.equipment.length;
+    const last=stepIndex===steps.length-1;
+    const undoFinish=last&&done.has(n.id);
+    $('previous').disabled=stepIndex===0&&!undoFinish;
+    $('previous').textContent=undoFinish?'Undo finish':'← Previous';
+    $('previous').setAttribute('aria-label',undoFinish?'Undo finish':'Previous step');
+    $('next').disabled=last&&done.has(n.id);
+    $('next').textContent=last?(done.has(n.id)?'✓ Done':'Finish step'):'Next →';
+    $('next').setAttribute('aria-label',last?$('next').textContent:'Complete step and go to next');
+    updateProgress();
+    $('step-count').textContent=`Step ${stepIndex+1} of ${steps.length}`;
+    const list=$('progress-list');
+    list.querySelector('[aria-current]')?.removeAttribute('aria-current');
+    list.children[stepIndex].firstElementChild.setAttribute('aria-current','step');
+  }
   function select(id,center=false){
     selected=id;highlight();detail.replaceChildren();
     if(!id){
       text('h2','Explore the recipe');text('p','Select a node to inspect its inputs, outputs, and cooking details.');
-      text('p','This is a dependency graph, not a timed schedule.','muted');
-      const a=text('a',`Source: ${recipe.source.publisher}`);a.href=recipe.source.url;a.target='_blank';a.rel='noopener noreferrer';
-      const details=text('details','');const summary=document.createElement('summary');summary.textContent='Recipe notes';details.append(summary);const ul=document.createElement('ul');ul.className='notes';recipe.notes.forEach(note=>{const li=document.createElement('li');li.textContent=note;ul.append(li);});details.append(ul);
       links('Jump to an action',recipe.nodes.filter(n=>n.type==='action').map(n=>n.id));return;
     }
     const n=byId.get(id);text('p',labels[n.type],'muted');text('h2',name(n));text('p',meta(n));
     if(n.type==='action'){
-      text('p',n.instruction);text('h3','Timing');text('p',`${time(n.duration.plannedSeconds)} planned · ${n.duration.basis==='estimate'?'Estimated duration':'Recipe duration'}`);
-      if(n.duration.minimumSeconds)text('p',`Recipe range: ${time(n.duration.minimumSeconds)}–${time(n.duration.maximumSeconds)}`);
-      if(n.duration.note)text('p',n.duration.note,'muted');
+      text('p',n.instruction);text('h3','Timing');text('p',`${time(n.scheduled_duration_seconds)} planned · ${n.scheduled_duration_source==='estimate'?'Estimated duration':'Recipe duration'}`);
       text('h3','Resources');text('p',`${n.cooksRequired} cook${n.cooksRequired===1?'':'s'} · ${n.equipment.map(s=>s.replace(/_/g,' ')).join(', ')||'No equipment'}`);
     }
     links('Food inputs',recipe.edges.filter(e=>e.to===id).map(e=>e.from));
@@ -139,18 +368,85 @@
     if(center)focusNode(id);
   }
   $('title').textContent=recipe.name;document.title=`${recipe.name} — recipe graph`;
-  $('summary').textContent=`${recipe.servings} servings · ${recipe.nodes.length} nodes · ${recipe.edges.length} food-flow links · ${connections.length-recipe.edges.length} ordering links`;
+  const yieldLabel = recipe.recipes ? `${recipe.recipes.length} recipes` : `${recipe.servings} servings`;
+  $('summary').textContent=`${yieldLabel} · ${recipe.nodes.length} nodes · ${recipe.edges.length} food-flow links · ${connections.length-recipe.edges.length} ordering links`;
   $('fit').onclick=fit;$('plus').onclick=()=>zoom(1.3);$('minus').onclick=()=>zoom(1/1.3);$('actual').onclick=()=>zoom(1/scale);
   $('direction').onchange=draw;$('orders').onchange=highlight;$('clear').onclick=()=>select(null);
+  $('previous').onclick=previousStep;$('next').onclick=completeAndAdvance;
+  function showPanel(id){
+    for(const button of document.querySelectorAll('.panel-nav button')){
+      const panel=$(button.getAttribute('aria-controls'));
+      panel.hidden=panel.id!==id;
+      button.setAttribute('aria-pressed',String(!panel.hidden));
+    }
+    if(id==='graph-panel'&&!layout){
+      draw();
+      select(null);
+    }
+  }
+  function showOverview(open,panelId){
+    $('overview').hidden=!open;
+    $('stepbar').hidden=open;
+    const toggle=$('overview-toggle');
+    toggle.setAttribute('aria-expanded',String(open));
+    toggle.textContent=open?'Back to step':'Overview';
+    if(open)showPanel(panelId||document.querySelector('.panel-nav [aria-pressed=true]').getAttribute('aria-controls'));
+    toggle.focus();
+    window.scrollTo(0,0);
+  }
+  $('map-button').onclick=()=>showOverview(true,'graph-panel');
+  $('overview-toggle').onclick=()=>showOverview($('overview').hidden);
+  for(const button of document.querySelectorAll('.panel-nav button')){
+    button.onclick=()=>showPanel(button.getAttribute('aria-controls'));
+  }
+  for(const [index,id] of steps.entries()){
+    const item=document.createElement('li'), button=document.createElement('button');
+    const number=document.createElement('span');
+    number.className='step-number';number.textContent=index+1;
+    const status=document.createElement('span');
+    status.className='step-status';
+    button.append(number,name(byId.get(id)),status);
+    button.onclick=()=>{
+      if(index<stepIndex)rewindTo(index);
+      else goToStep(index);
+      showOverview(false);
+    };
+    item.append(button);$('progress-list').append(item);
+  }
+  for(const component of recipe.recipes||[recipe]){
+    const item=document.createElement('li');
+    item.textContent=`${component.name} · ${component.servings} serving${component.servings===1?'':'s'}`;
+    $('recipe-list').append(item);
+  }
+  for(const note of recipe.notes){
+    const item=document.createElement('li');item.textContent=note;$('recipe-notes').append(item);
+  }
+  document.addEventListener('keydown',e=>{
+    if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+    if(!$('overview').hidden){
+      if(e.key==='Escape')showOverview(false);
+      return;
+    }
+    if(e.target.closest('input,select,textarea,[contenteditable]:not([contenteditable="false"])'))return;
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+      e.preventDefault();
+      if(e.repeat)return;
+      if(e.key==='ArrowLeft')previousStep();
+      else if(!$('next').disabled)completeAndAdvance();
+    }
+  });
   svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});
   svg.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY,tx,ty};moved=false;});
   svg.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4){moved=true;svg.classList.add('dragging');svg.setPointerCapture(e.pointerId);}if(moved){tx=drag.tx+dx;ty=drag.ty+dy;transform();}});
   function endDrag(e){if(!drag||e.pointerId!==drag.id)return;drag=null;svg.classList.remove('dragging');if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId);}
   svg.addEventListener('pointerup',endDrag);svg.addEventListener('pointercancel',endDrag);
   svg.addEventListener('click',e=>{if(!moved&&!e.target.closest('.node'))select(null);});
-  svg.addEventListener('keydown',e=>{if(e.key==='Escape')select(null);});
-  new ResizeObserver(()=>fit()).observe($('canvas'));
-  draw();select(null);
+  svg.addEventListener('keydown',e=>{if(e.key==='Escape'&&selected){e.preventDefault();select(null);}});
+  new ResizeObserver(()=>{
+    if(layout && svg.clientWidth && svg.clientHeight)fit();
+  }).observe($('canvas'));
+  drawMinimap();
+  goToStep(0);
 })();
 </script>
 </body>
