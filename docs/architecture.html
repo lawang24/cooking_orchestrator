@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inside the recipe compiler · Cooking Orchestrator</title>
+<style>
+:root { color-scheme:light; --paper:#f8f7f0; --ink:#20382e; --green:#235e43; --mute:#53665b; --rule:#cdd6ca; --panel:#173e32; --mono:"IBM Plex Mono",Menlo,monospace }
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.62 "DM Sans","Helvetica Neue",Arial,sans-serif}header{border-bottom:1px solid var(--rule)}.wrap{width:min(1160px,91%);margin:auto}header .wrap{display:flex;align-items:center;justify-content:space-between;padding:1rem 0;gap:1rem}header strong{letter-spacing:-.03em}a{color:var(--green);text-underline-offset:.22em;overflow-wrap:anywhere}a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:3px solid #b66e22;outline-offset:3px}
+h1,h2{font-family:"Iowan Old Style",Georgia,serif;font-weight:500;line-height:1.07;letter-spacing:-.045em}h1{font-size:clamp(3rem,5vw,4.6rem);margin:.25em 0}h2{font-size:clamp(2rem,3.3vw,3rem);margin:0 0 1rem}h3{font-size:1.1rem;margin:1.4rem 0 .3rem}p{margin:.6rem 0 1rem}code,pre,.label,figcaption,dt{font-family:var(--mono)}code{font-size:.88em;background:#e7ebe1;border-radius:3px;padding:.08em .23em;overflow-wrap:anywhere}.label,figcaption,dt{font-size:.76rem;color:var(--mute)}.label,dt{letter-spacing:.07em;text-transform:uppercase}.hero{padding:3rem 0 2rem}.hero>p{max-width:76ch}.hero .label{font-weight:bold}
+nav{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;padding:.9rem 0;border-block:1px solid var(--rule);font-size:.9rem}nav a{text-decoration:none}nav a:hover{text-decoration:underline}
+section{padding:2.5rem 0;border-bottom:1px solid var(--rule);scroll-margin-top:1rem}.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.13fr);gap:clamp(1rem,4vw,3.5rem)}.cols p,.intro{max-width:76ch}figure{margin:1rem 0;background:#eef0e7;border-radius:6px;overflow:hidden;border:1px solid var(--rule)}figcaption{padding:.55rem .9rem;border-bottom:1px solid var(--rule);background:#e5ebe0}pre{margin:0;padding:.85rem 1rem;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;font-size:.83rem}pre code{padding:0;background:none;font-size:inherit}
+details{margin:.65rem 0;border:1px solid var(--rule);border-radius:5px;padding:.5rem .9rem}summary{cursor:pointer;font-weight:600}details figure{margin:.7rem 0}.stack{background:var(--panel);color:#eff2e8;border:0}.stack figcaption{color:#ccdecf;background:transparent;border-color:#577462}.stack pre{font-size:.91rem}.probe{border:1px solid var(--rule);border-radius:8px;padding:1rem 1.25rem;background:white}.probe label{font-weight:600}.probe input{display:block;width:100%;accent-color:var(--green);margin:1rem 0}.buttons{display:flex;gap:.6rem;margin:.8rem 0}.buttons button{background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:4px;padding:.4rem .8rem;cursor:pointer}.buttons button:disabled{opacity:.45;cursor:default}dl{margin:.75rem 0}dt{margin-top:.6rem}dd{margin:0;font-family:var(--mono);font-size:.83rem;overflow-wrap:anywhere}.call{padding:1rem;border-left:3px solid var(--green);background:#ebeee4}footer{padding:1.8rem 0}.refs{font-size:.86rem}.cols>div{min-width:0}@media(max-width:760px){.cols{grid-template-columns:1fr;gap:0}.hero{padding:1.5rem 0}h2{margin-top:.5rem}header .wrap{flex-wrap:wrap}.wrap{width:92%}}@media print{nav,.buttons,input{display:none}}
+</style></head><body id="top">
+<header><div class="wrap"><strong>Cooking Orchestrator</strong><a href="../DECISIONS.md">Decision log ↗</a></div></header>
+<main class="wrap">
+<div class="hero"><div class="label">Implementation walkthrough</div><h1>Inside the recipe compiler</h1>
+<p>Set your first breakpoint in <code>render_recipe()</code>. The recipe is still a Python dictionary there. Follow <code>sear_onions</code> through the call below to see how its two input IDs turn into edges, how its three action prerequisites are derived, and what happens when you select it in the browser.</p>
+<figure class="stack"><figcaption>scripts/visualize_recipe_graph.py · line 18</figcaption><pre><code>return render_graph(compile_recipe(recipe))</code></pre></figure>
+<nav aria-label="Code walkthrough"><a href="#entry">Call stack</a><a href="#build">Compiler</a><a href="#validate">Validator</a><a href="#order">Walkthrough heap</a><a href="#browser">Browser</a><a href="#decisions">Decisions</a><a href="#debug">Debug locally</a></nav></div>
+<section id="entry"><h2>What runs when you open a recipe?</h2><div class="cols"><div>
+<p>The visualizer’s CLI reads the JSON file, calls <code>json.loads</code>, and passes the resulting dictionary into <code>render_recipe</code>. Only after rendering succeeds does <code>main()</code> create the output directory and write the HTML string.</p>
+<p><code>compile_recipe</code> loads the schema, checks the schema itself and creates a Draft 2020-12 validator with a format checker. It collects every input error with its JSON path. Any error raises <code>ValueError</code> before graph construction begins.</p></div><div>
+<figure><figcaption>Visualizer call stack · return values</figcaption><pre><code>main()
+  render_recipe(recipe)
+    compile_recipe(recipe)
+      build_graph(recipe)
+        validate_graph(graph)  → list of errors
+      ↳ validated graph dictionary
+    render_graph(graph)
+      validate_graph(graph)    → list of errors
+      action_order(graph)      → list of action IDs
+    ↳ complete HTML string</code></pre></figure>
+</div></div><p class="refs">The second validation also protects callers that supply an already compiled graph directly to <code>render_graph</code>, including the meal-merge experiment. <a href="../scripts/visualize_recipe_graph.py">Renderer entry points</a> · <a href="../scripts/compile_recipe.py">Compiler entry points</a> · <a href="../experiments/meal-merge/merge_recipes.py">Meal-merge caller</a></p></section>
+<section id="build"><h2>Watch <code>build_graph</code> replace references with edges</h2>
+<p class="intro">The function copies recipe metadata and initializes <code>nodes</code> and <code>edges</code>. The ingredient loop copies declared totals; the step loop compiles every authored action, including measurement.</p><div class="cols"><div><h3>Ingredient loop · copy the total oil</h3>
+<p>The recipe declares <code>neutral_oil</code> as <code>7 tsp</code> total. Its explicit <code>measure_neutral_oil</code> step produces three purpose-specific states: 1 tsp for the marinade, 1 tbsp for searing beef, and 1 tbsp for searing onions.</p>
+<p>The ingredient loop emits only the total ingredient node. The step loop emits the authored measurement action and its output states, preserving its 60-second estimate and measuring-spoon requirement. Validation checks that <code>1 + 1 × 3 + 1 × 3 = 7 tsp</code>; compilation does not invent the total or measurement details.</p></div><div>
+<figure><figcaption><a href="../scripts/compile_recipe.py">compile_recipe.py</a> · ingredient loop</figcaption><pre><code>for id, ingredient in recipe['ingredients'].items():
+    graph['nodes'].append({'id': id, 'type': 'ingredient', **deepcopy(ingredient)})</code></pre></figure>
+<details><summary>Inspect the actual oil nodes</summary><figure><figcaption>Compiled nodes · two of the five records</figcaption><pre><code>[
+  {
+    &quot;id&quot;: &quot;measure_neutral_oil&quot;,
+    &quot;type&quot;: &quot;action&quot;,
+    &quot;operation&quot;: &quot;measure&quot;,
+    &quot;instruction&quot;: &quot;Measure neutral oil into separate portions: 1 tsp, 1 tbsp, 1 tbsp.&quot;,
+    &quot;scheduled_duration_seconds&quot;: 60,
+    &quot;scheduled_duration_source&quot;: &quot;estimate&quot;,
+    &quot;attention&quot;: &quot;active&quot;,
+    &quot;cooksRequired&quot;: 1,
+    &quot;equipment&quot;: [
+      &quot;measuring_spoons&quot;
+    ],
+    &quot;dependsOn&quot;: []
+  },
+  {
+    &quot;id&quot;: &quot;onion_searing_oil&quot;,
+    &quot;type&quot;: &quot;food_state&quot;,
+    &quot;name&quot;: &quot;Neutral oil for searing onions&quot;,
+    &quot;ingredient&quot;: &quot;neutral_oil&quot;,
+    &quot;quantity&quot;: 1,
+    &quot;unit&quot;: &quot;tbsp&quot;
+  }
+]</code></pre></figure></details>
+</div></div><div class="cols"><div><h3>Step loop · consume the oil portion</h3><p>For <code>sear_onions</code>, the compiler copies the instruction, operation, resources, duration and <code>dependsOn</code> into an action record. It removes the nested input and output fields. Each input ID becomes the source of an edge into the action. Each output definition becomes a new state node and an edge out of the action.</p>
+<p>These edges contain IDs, so a producer can appear later in the file. Reference resolution happens after both loops. The required earlier sear stays in <code>dependsOn</code> on the action record.</p>
+<details><summary>Compare authored and compiled records</summary><figure><figcaption>Authored step</figcaption><pre><code>{
+  &quot;id&quot;: &quot;sear_onions&quot;,
+  &quot;instruction&quot;: &quot;Add oil and wedges to the same wok. Toss for 60–90 seconds until blistered; transfer out.&quot;,
+  &quot;scheduled_duration_seconds&quot;: 105,
+  &quot;scheduled_duration_source&quot;: &quot;estimate&quot;,
+  &quot;attention&quot;: &quot;active&quot;,
+  &quot;cooksRequired&quot;: 1,
+  &quot;equipment&quot;: [
+    &quot;wok&quot;,
+    &quot;burner&quot;,
+    &quot;spatula&quot;,
+    &quot;onion_holding_plate&quot;
+  ],
+  &quot;dependsOn&quot;: [
+    &quot;sear_beef&quot;
+  ],
+  &quot;operation&quot;: &quot;sear&quot;,
+  &quot;inputs&quot;: [
+    &quot;onion_wedges&quot;,
+    &quot;onion_searing_oil&quot;
+  ],
+  &quot;outputs&quot;: [
+    {
+      &quot;id&quot;: &quot;seared_onions&quot;,
+      &quot;name&quot;: &quot;Blistered onion wedges&quot;
+    }
+  ]
+}</code></pre></figure><figure><figcaption>Compiled action</figcaption><pre><code>{
+  &quot;id&quot;: &quot;sear_onions&quot;,
+  &quot;instruction&quot;: &quot;Add oil and wedges to the same wok. Toss for 60–90 seconds until blistered; transfer out.&quot;,
+  &quot;scheduled_duration_seconds&quot;: 105,
+  &quot;scheduled_duration_source&quot;: &quot;estimate&quot;,
+  &quot;attention&quot;: &quot;active&quot;,
+  &quot;cooksRequired&quot;: 1,
+  &quot;equipment&quot;: [
+    &quot;wok&quot;,
+    &quot;burner&quot;,
+    &quot;spatula&quot;,
+    &quot;onion_holding_plate&quot;
+  ],
+  &quot;dependsOn&quot;: [
+    &quot;sear_beef&quot;
+  ],
+  &quot;operation&quot;: &quot;sear&quot;,
+  &quot;type&quot;: &quot;action&quot;
+}</code></pre></figure></details>
+</div><div><figure><figcaption><a href="../scripts/compile_recipe.py">compile_recipe.py</a> · lines 90–99</figcaption><pre><code>for step in recipe[&#x27;steps&#x27;]:
+    action = {key: deepcopy(value) for key, value in step.items()
+              if key not in (&#x27;inputs&#x27;, &#x27;outputs&#x27;)}
+    action.update(type=&#x27;action&#x27;, dependsOn=deepcopy(step.get(&#x27;dependsOn&#x27;, [])))
+    graph[&#x27;nodes&#x27;].append(action)
+    for input_id in step[&#x27;inputs&#x27;]:
+        graph[&#x27;edges&#x27;].append({&#x27;from&#x27;: input_id, &#x27;to&#x27;: step[&#x27;id&#x27;]})
+    for output in step[&#x27;outputs&#x27;]:
+        graph[&#x27;nodes&#x27;].append({&#x27;type&#x27;: &#x27;food_state&#x27;, **deepcopy(output)})
+        graph[&#x27;edges&#x27;].append({&#x27;from&#x27;: step[&#x27;id&#x27;], &#x27;to&#x27;: output[&#x27;id&#x27;]})</code></pre></figure>
+<figure><figcaption>All three food-flow edges touching sear_onions</figcaption><pre><code>{&quot;from&quot;: &quot;onion_wedges&quot;, &quot;to&quot;: &quot;sear_onions&quot;}
+{&quot;from&quot;: &quot;onion_searing_oil&quot;, &quot;to&quot;: &quot;sear_onions&quot;}
+{&quot;from&quot;: &quot;sear_onions&quot;, &quot;to&quot;: &quot;seared_onions&quot;}</code></pre></figure>
+</div></div></section>
+<section id="validate"><h2>Why the validator builds two kinds of adjacency</h2><div class="cols"><div>
+<h3>Index the food graph</h3><p><code>validate_graph</code> builds an ID dictionary. If it shrinks the node count, an ID was reused. It then allocates <code>incoming[id]</code> and <code>outgoing[id]</code> as sets of neighboring IDs, checking that each edge has known endpoints and connects permitted node types.</p>
+<p>For <code>sear_onions</code>, the incoming set is <code>{onion_wedges, onion_searing_oil}</code> and the outgoing set is <code>{seared_onions}</code>. The validator can now count producers and consumers. Every food state needs one producer, each unfinished food node needs one consumer, and terminal outputs need zero consumers.</p>
+<h3>Detect cycles, then trace the food backward</h3><p>For the cycle check, it copies <code>outgoing</code> into <code>adjacency</code> and adds <code>(dependency, action)</code> pairs. Kahn’s algorithm repeatedly pops zero-indegree nodes from a deque and decrements their successors’ indegrees. If the visit count falls short, a cycle remains.</p>
+<p>The final traversal starts at <code>graph['outputs']</code> and follows only the original <code>incoming</code> sets. This distinction matters: ordering one action before another cannot demonstrate that its food reaches the plate.</p></div><div>
+<figure><figcaption><a href="../scripts/validate_recipe_graph.py">validate_recipe_graph.py</a> · lines 90–100</figcaption><pre><code># Every node must contribute food to a declared output, not just an order constraint.
+ancestors = set(graph[&#x27;outputs&#x27;])
+pending = list(ancestors)
+while pending:
+    for predecessor in incoming[pending.pop()]:
+        if predecessor not in ancestors:
+            ancestors.add(predecessor)
+            pending.append(predecessor)
+unused = sorted(set(nodes) - ancestors)
+if unused:
+    errors.append(f&#x27;Nodes do not contribute to a declared output: {&quot;, &quot;.join(unused)}.&#x27;)</code></pre></figure>
+<h3>Trigger a failure</h3><p>Each edit below was applied separately to an in-memory copy of the stir-fry. Expand it to see the compiler’s actual exception text.</p>
+<details><summary>Set sear_onions.scheduled_duration_seconds to 0</summary><figure><figcaption>ValueError</figcaption><pre><code>Invalid recipe:
+$.steps[18].scheduled_duration_seconds: 0 is less than the minimum of 1</code></pre></figure></details>
+<details><summary>Also give onion_searing_oil to sear_beef</summary><figure><figcaption>ValueError</figcaption><pre><code>Invalid recipe:
+onion_searing_oil: expected 1 consuming actions; split portions explicitly.</code></pre></figure></details>
+<details><summary>Make sear_beef depend on sear_onions</summary><figure><figcaption>ValueError</figcaption><pre><code>Invalid recipe:
+Cycle detected in food flow or action ordering.</code></pre></figure></details>
+</div></div></section>
+<section id="order"><h2>How <code>action_order</code> picks the next action</h2>
+<div class="cols"><div><p>The viewer needs a list of actions. <code>action_order</code> first indexes every action-produced state by its producer. When it finds the edge <code>onion_wedges → sear_onions</code>, the producer map resolves <code>onion_wedges</code> to <code>prep_onions</code>. It does the same for the measured oil, then combines these producers with the action’s explicit prerequisites.</p>
+<figure><figcaption>Initial prerequisites for sear_onions</figcaption><pre><code>measure_neutral_oil
+prep_onions
+sear_beef</code></pre></figure>
+<p><code>followers</code> reverses this lookup. Popping an action removes its ID from each follower’s prerequisite set. When that set empties, the follower enters a min-heap keyed by its position in the compiled action list. Measurements were appended first, so ready measurements win ties with ready authored steps.</p>
+<details><summary>Read the heap loop</summary><figure><figcaption><a href="../scripts/visualize_recipe_graph.py">visualize_recipe_graph.py</a> · lines 38–50</figcaption><pre><code>ready = [(priority[id], id) for id, dependencies in prerequisites.items() if not dependencies]
+heapq.heapify(ready)
+ordered = []
+while ready:
+    _, id = heapq.heappop(ready)
+    ordered.append(id)
+    for follower in followers[id]:
+        prerequisites[follower].remove(id)
+        if not prerequisites[follower]:
+            heapq.heappush(ready, (priority[follower], follower))
+if len(ordered) != len(actions):
+    raise ValueError(&#x27;Cannot build a walkthrough with cyclic action dependencies.&#x27;)
+return ordered</code></pre></figure></details>
+</div><div class="probe"><h3>Inspect a heap iteration</h3><p>These values were captured immediately before each <code>heappop</code> while running the example. The ready entries are displayed in priority order.</p>
+<label for="frame">Loop iteration <output id="counter">18 of 21</output></label><input id="frame" type="range" min="1" max="21" value="18">
+<div class="buttons"><button type="button" id="prev">← Previous</button><button type="button" id="next">Next →</button></div><div aria-live="polite"><dl>
+<dt>Action about to pop</dt><dd id="pick">sear_beef</dd>
+<dt>Ready entries · priority and ID</dt><dd id="ready">17 sear_beef</dd>
+<dt>Remaining prerequisites for sear_onions</dt><dd id="waiting">sear_beef</dd>
+</dl></div><p class="refs">At iteration 18, <code>sear_beef</code> is the last prerequisite. Advance once to see <code>sear_onions</code> enter the heap. Neither equipment nor cook count participates in this sort.</p></div></div></section>
+<section id="browser"><h2>From Python dictionaries to a selected SVG node</h2><div class="cols"><div><h3>Write the two payloads</h3><p><code>render_graph</code> splits the shared template once at each placeholder and inserts the bundled Dagre library and license, the graph, and the action ID list. <code>embedded_json</code> escapes angle brackets and ampersands so recipe text containing a closing script tag survives the HTML parser. Both payloads go into <code>application/json</code> script elements.</p>
+<figure><figcaption><a href="../scripts/recipe_graph_viewer.html">recipe_graph_viewer.html</a> · lines 65–67</figcaption><pre><code>const recipe = JSON.parse(document.getElementById(&#x27;recipe-data&#x27;).textContent);
+const steps = JSON.parse(document.getElementById(&#x27;step-data&#x27;).textContent);
+const byId = new Map(recipe.nodes.map(n =&gt; [n.id,n]));</code></pre></figure>
+<h3>Lay out the graph</h3><p>The template’s JavaScript creates <code>connections</code> from the food edges, then appends an <code>order</code> connection for each <code>dependsOn</code> entry. <code>draw()</code> gives Dagre node sizes and named edges, weighted 3 for food and 1 for ordering. It uses the resulting coordinates to create SVG groups and paths. The ordering toggle calls <code>highlight()</code>, which changes visibility without rerunning layout.</p></div>
+<div><h3>Trace one press of Next</h3><p>Suppose the viewer is on <code>sear_beef</code>. The Next handler calls <code>goToStep(stepIndex + 1)</code>. That function clamps the index and calls <code>select(steps[stepIndex], true)</code>. In this recipe the selected ID is now <code>sear_onions</code>.</p>
+<figure><figcaption><a href="../scripts/recipe_graph_viewer.html">recipe_graph_viewer.html</a> · lines 151–162</figcaption><pre><code>function goToStep(index){
+  const moveFocus=document.activeElement?.closest(&#x27;.node&#x27;);
+  stepIndex=Math.max(0,Math.min(steps.length-1,index));
+  select(steps[stepIndex],true);
+  if(moveFocus)$(&#x27;nodes&#x27;).querySelector(&#x27;.node.selected&#x27;).focus({preventScroll:true});
+}
+function select(id,center=false){
+  if(stepMode){
+    if(!id||byId.get(id).type!==&#x27;action&#x27;)return;
+    stepIndex=steps.indexOf(id);syncStep();center=true;
+  }
+  selected=id;highlight();detail.replaceChildren();</code></pre></figure>
+<p><code>syncStep()</code> updates the count, instruction and navigation buttons. <code>highlight()</code> updates SVG classes and accessibility attributes. <code>select()</code> rebuilds the detail panel, looking up food neighbors in <code>recipe.edges</code> and ordering neighbors in <code>dependsOn</code> and <code>connections</code>. Finally <code>focusNode()</code> sets the scale to 1 and translates the viewport to center the selected node.</p><p>Explore mode allows any node to be selected while preserving <code>stepIndex</code>. Returning to step mode restores that position. These interactions run entirely in the generated HTML.</p></div></div></section>
+<section id="decisions"><h2>Where the accepted decisions show up in code</h2>
+<p><strong>001 · Graph representation.</strong> The node <code>type</code> and directed <code>from</code>/<code>to</code> records give the validator enough information to check that an action transforms food. Intermediate states also let the viewer identify exactly which output an action consumes.</p>
+<p><strong>002 · Separate authoring from compilation.</strong> The input contract exposes <code>ingredients</code> and <code>steps</code>. The step loop compiles their references; assigning <code>priority</code> in the viewer affects tie-breaking only. An author can reorder independent steps without creating new dependencies. Shared ingredient keys and structured operation names carry information a future planner could use.</p>
+<p><strong>007 · Explicit measurement and ingredient totals.</strong> Supersedes the generated measurements of 003 and 006. Ingredients declare recipe totals, and authors write <code>measure</code> steps with quantified outputs. The compiler preserves those declarations, and the validator checks that each measurement conserves the ingredient identity and amount. Meal optimization only combines actions matching its conservative template; custom measurements remain separate.</p>
+<p class="refs"><a href="../DECISIONS.md">Accepted decision log</a> · <a href="../schemas/recipe.schema.json">Schema contract</a></p></section>
+<section id="debug"><h2>Inspect the same values locally</h2><p>Run this from the repository root with the project’s Python environment. To step through the transformation, insert <code>breakpoint()</code> before <code>graph = compile_recipe(recipe)</code> and use <code>s</code> to enter the compiler.</p>
+<figure><figcaption>Shell · inspect the checked-in recipe</figcaption><pre><code>.venv/bin/python - &lt;&lt;&#x27;PY&#x27;
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, &quot;scripts&quot;)
+from compile_recipe import compile_recipe
+from visualize_recipe_graph import action_order
+
+recipe = json.loads(Path(&quot;recipes/beef-onion-stir-fry.recipe.json&quot;).read_text())
+graph = compile_recipe(recipe)
+print(len(graph[&quot;nodes&quot;]), len(graph[&quot;edges&quot;]))
+print([e for e in graph[&quot;edges&quot;] if e[&quot;to&quot;] == &quot;sear_onions&quot;])
+print(action_order(graph)[-4:])
+PY</code></pre></figure>
+<figure><figcaption>Output from this checkout</figcaption><pre><code>58 61
+[{&#x27;from&#x27;: &#x27;onion_wedges&#x27;, &#x27;to&#x27;: &#x27;sear_onions&#x27;}, {&#x27;from&#x27;: &#x27;onion_searing_oil&#x27;, &#x27;to&#x27;: &#x27;sear_onions&#x27;}]
+[&#x27;sear_beef&#x27;, &#x27;sear_onions&#x27;, &#x27;simmer_sauce&#x27;, &#x27;finish_dish&#x27;]</code></pre></figure>
+<p class="refs">Tests for these behaviors · <a href="../tests/test_compile_recipe.py">Compiler and graph errors</a> · <a href="../tests/test_visualize_recipe_graph.py">Embedding and action order</a> · <a href="../tests/viewer-navigation.test.cjs">Browser navigation</a></p></section></main><footer class="wrap"><a href="#top">Back to top ↑</a></footer>
+<script id="frames" type="application/json">[{"pick": "measure_flank_steak", "ready": [[0, "measure_flank_steak"], [1, "measure_baking_soda"], [2, "measure_cornstarch"], [3, "measure_neutral_oil"], [4, "measure_oyster_sauce"], [5, "measure_water"], [6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"]], "waiting": ["measure_neutral_oil", "prep_onions", "sear_beef"], "done": false}, {"pick": "measure_baking_soda", "ready": [[1, "measure_baking_soda"], [2, "measure_cornstarch"], [3, "measure_neutral_oil"], [4, "measure_oyster_sauce"], [5, "measure_water"], [6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["measure_neutral_oil", "prep_onions", "sear_beef"], "done": false}, {"pick": "measure_cornstarch", "ready": [[2, "measure_cornstarch"], [3, "measure_neutral_oil"], [4, "measure_oyster_sauce"], [5, "measure_water"], [6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["measure_neutral_oil", "prep_onions", "sear_beef"], "done": false}, {"pick": "measure_neutral_oil", "ready": [[3, "measure_neutral_oil"], [4, "measure_oyster_sauce"], [5, "measure_water"], [6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["measure_neutral_oil", "prep_onions", "sear_beef"], "done": false}, {"pick": "measure_oyster_sauce", "ready": [[4, "measure_oyster_sauce"], [5, "measure_water"], [6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_water", "ready": [[5, "measure_water"], [6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_light_soy_sauce", "ready": [[6, "measure_light_soy_sauce"], [7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_dark_soy_sauce", "ready": [[7, "measure_dark_soy_sauce"], [8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_ketchup", "ready": [[8, "measure_ketchup"], [9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_sugar", "ready": [[9, "measure_sugar"], [10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_sesame_oil", "ready": [[10, "measure_sesame_oil"], [11, "measure_onion"], [12, "slice_beef"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "measure_onion", "ready": [[11, "measure_onion"], [12, "slice_beef"], [16, "mix_sauce"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "slice_beef", "ready": [[12, "slice_beef"], [15, "prep_onions"], [16, "mix_sauce"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "mix_marinade", "ready": [[13, "mix_marinade"], [15, "prep_onions"], [16, "mix_sauce"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "marinate_beef", "ready": [[14, "marinate_beef"], [15, "prep_onions"], [16, "mix_sauce"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "prep_onions", "ready": [[15, "prep_onions"], [16, "mix_sauce"]], "waiting": ["prep_onions", "sear_beef"], "done": false}, {"pick": "mix_sauce", "ready": [[16, "mix_sauce"]], "waiting": ["sear_beef"], "done": false}, {"pick": "sear_beef", "ready": [[17, "sear_beef"]], "waiting": ["sear_beef"], "done": false}, {"pick": "sear_onions", "ready": [[18, "sear_onions"]], "waiting": [], "done": false}, {"pick": "simmer_sauce", "ready": [[19, "simmer_sauce"]], "waiting": [], "done": true}, {"pick": "finish_dish", "ready": [[20, "finish_dish"]], "waiting": [], "done": true}]</script>
+<script>
+const frames = JSON.parse(document.getElementById('frames').textContent);
+const el = id => document.getElementById(id);
+function showIteration(iteration) {
+  const frame = frames[iteration - 1];
+  el('frame').value = iteration;
+  el('counter').textContent = iteration + ' of ' + frames.length;
+  el('ready').textContent = frame.ready.map(([priority, id]) => priority + ' ' + id).join(' · ');
+  el('pick').textContent = frame.pick;
+  el('waiting').textContent = frame.waiting.join(', ') || (frame.done ? 'already emitted' : '∅ (ready)');
+  el('prev').disabled = iteration === 1;
+  el('next').disabled = iteration === frames.length;
+}
+el('frame').addEventListener('input', event => showIteration(Number(event.target.value)));
+el('prev').addEventListener('click', () => showIteration(Number(el('frame').value) - 1));
+el('next').addEventListener('click', () => showIteration(Number(el('frame').value) + 1));
+showIteration(Number(el('frame').value));
+</script></body></html>
