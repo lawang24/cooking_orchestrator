@@ -1,9 +1,8 @@
 """Proof of concept: merge several recipes into one meal graph.
 
-Each recipe's portion, step, and food-state IDs get a '<tag>-' prefix so they
-cannot collide. Ingredients stay keyed by canonical identity, so the same
-ingredient across recipes shares one ingredient node and one measure action.
-No cross-recipe ordering or equipment assignment is added.
+Each recipe is compiled and validated independently. The resulting graphs are
+namespaced and combined before compatible ingredient/measurement pairs merge.
+Portions and authored actions remain separate; no scheduling is performed.
 
 Run from the project directory:
   .venv/bin/python experiments/meal-merge/merge_recipes.py \\
@@ -11,68 +10,20 @@ Run from the project directory:
 """
 
 import argparse
-from copy import deepcopy
 import json
 from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from compile_recipe import build_graph, compile_recipe
+from compile_recipe import compile_recipe
+from merge_recipe_graphs import merge_recipe_graphs
 from visualize_recipe_graph import render_graph
 
 
 def merge_recipes(tagged):
-    """Return one meal graph from (tag, recipe) pairs; each recipe must compile on its own."""
-    recipes = [recipe for _, recipe in tagged]
-    meal = {
-        'schemaVersion': '1.0',
-        'recipeId': 'meal-' + '-'.join(tag for tag, _ in tagged),
-        'name': ' + '.join(recipe['name'] for recipe in recipes),
-        # The viewer links one source; every recipe's source is kept in 'recipes'.
-        'source': {
-            'url': recipes[0]['source']['url'],
-            'publisher': ' + '.join(dict.fromkeys(recipe['source']['publisher'] for recipe in recipes)),
-            'author': ' + '.join(dict.fromkeys(recipe['source']['author'] for recipe in recipes)),
-        },
-        'recipes': [],
-        'notes': [
-            'Proof-of-concept meal graph. Each canonical ingredient has one measure action producing every portion across recipes.',
-            'Equipment such as wok and burner appears in several recipes; no cross-recipe ordering or resource assignment is modeled.',
-        ],
-        'outputs': [],
-        'ingredients': {},
-        'steps': [],
-    }
-    for tag, recipe in tagged:
-        compile_recipe(recipe)
-
-        def local(id):
-            return f'{tag}-{id}'
-
-        meal['recipes'].append({'tag': tag, **{key: deepcopy(recipe[key])
-                                               for key in ('recipeId', 'name', 'servings', 'source')}})
-        meal['notes'] += [f"{recipe['name']}: {note}" for note in recipe['notes']]
-        meal['outputs'] += [local(id) for id in recipe['outputs']]
-        for identity, ingredient in recipe['ingredients'].items():
-            merged = meal['ingredients'].setdefault(identity, {'name': ingredient['name'], 'portions': {}})
-            if 'measure' in ingredient:
-                if 'measure' in merged:
-                    raise ValueError(f'{identity}: measure overrides from several recipes cannot be combined yet.')
-                merged['measure'] = deepcopy(ingredient['measure'])
-            for id, portion in ingredient['portions'].items():
-                label = portion.get('name', f"{ingredient['name']} ({portion['quantity']:g} {portion['unit']})")
-                merged['portions'][local(id)] = {**portion, 'name': f'{label} [{tag}]'}
-        for step in recipe['steps']:
-            step = deepcopy(step)
-            step['id'] = local(step['id'])
-            step['inputs'] = [local(id) for id in step['inputs']]
-            if 'dependsOn' in step:
-                step['dependsOn'] = [local(id) for id in step['dependsOn']]
-            for output in step['outputs']:
-                output['id'] = local(output['id'])
-            meal['steps'].append(step)
-    return build_graph(meal)
+    """Compile recipes independently, then compose their graphs."""
+    return merge_recipe_graphs([(tag, compile_recipe(recipe)) for tag, recipe in tagged])
 
 
 def main():
