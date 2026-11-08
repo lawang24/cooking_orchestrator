@@ -5,23 +5,12 @@
   "description": "Recipe input. Compile ingredients and steps into the internal dependency graph before scheduling or visualization.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "recipeId", "name", "source", "servings", "notes", "outputs", "ingredients", "steps"],
+  "required": ["schemaVersion", "recipeId", "name", "servings", "notes", "outputs", "ingredients", "steps"],
   "properties": {
     "$schema": {"type": "string"},
     "schemaVersion": {"const": "1.0"},
     "recipeId": {"$ref": "#slug"},
     "name": {"$ref": "#nonEmptyString"},
-    "source": {
-      "$comment": "Keep the original recipe's URL, publisher, and author so its instructions and timing claims can be traced back to their source.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["url", "publisher", "author"],
-      "properties": {
-        "url": {"type": "string", "format": "uri", "pattern": "^https?://"},
-        "publisher": {"$ref": "#nonEmptyString"},
-        "author": {"$ref": "#nonEmptyString"}
-      }
-    },
     "servings": {"type": "integer", "minimum": 1},
     "notes": {"type": "array", "items": {"$ref": "#nonEmptyString"}},
     "outputs": {
@@ -33,7 +22,7 @@
       "items": {"$ref": "#slug"}
     },
     "ingredients": {
-      "$comment": "Keys are canonical ingredient identities, such as neutral_oil, shared across recipes. Each ingredient lists its portions; the compiler generates one measure action per ingredient that produces all of them.",
+      "$comment": "Keys are canonical ingredient identities, such as neutral_oil, shared across recipes. Each ingredient declares its total quantity and unit; authors write measurement steps explicitly.",
       "type": "object",
       "minProperties": 1,
       "propertyNames": {"$ref": "#slug"},
@@ -53,41 +42,15 @@
     "nonEmptyString": {"$anchor": "nonEmptyString", "type": "string", "minLength": 1},
     "ingredient": {
       "$anchor": "ingredient",
-      "$comment": "The object key is the shared identity, such as neutral_oil; name is the display label. Use consistent identities across recipes to support future matching. Identities are author-supplied, not checked against a catalog. Portion keys are recipe-local food-state IDs that steps consume. All portions of one ingredient must use volume units, weight units, or whole counts so the compiler can total them.",
-      "description": "One ingredient and the separate portions measured from it. The object key is its canonical identity.",
+      "$comment": "The object key is the canonical ingredient identity shared across recipes. Declare the total quantity needed for this recipe. An explicit measure step consumes this total and produces quantified food states for each use.",
+      "description": "The total amount of one starting ingredient required by the recipe.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "portions"],
+      "required": ["name", "quantity", "unit"],
       "properties": {
         "name": {"$ref": "#nonEmptyString"},
-        "portions": {
-          "type": "object",
-          "minProperties": 1,
-          "propertyNames": {"$ref": "#slug"},
-          "additionalProperties": {"$ref": "#portion"}
-        },
-        "measure": {
-          "$comment": "Optional overrides for the generated measure action. Defaults: 30 seconds plus 15 per additional portion, and equipment chosen from portion units.",
-          "type": "object",
-          "additionalProperties": false,
-          "minProperties": 1,
-          "properties": {
-            "duration": {"$ref": "#duration"},
-            "equipment": {"type": "array", "uniqueItems": true, "items": {"$ref": "#slug"}}
-          }
-        }
-      }
-    },
-    "portion": {
-      "$anchor": "portion",
-      "$comment": "Quantity must be positive, and unit must be one of the listed values; whole means a count of items. The optional name labels the measured portion; otherwise the compiler uses the ingredient name and amount. Name portions when those labels would be ambiguous.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["quantity", "unit"],
-      "properties": {
         "quantity": {"type": "number", "exclusiveMinimum": 0},
-        "unit": {"enum": ["g", "kg", "oz", "lb", "ml", "l", "tsp", "tbsp", "cup", "whole"]},
-        "name": {"$ref": "#nonEmptyString"}
+        "unit": {"enum": ["g", "kg", "oz", "lb", "ml", "l", "tsp", "tbsp", "cup", "whole"]}
       }
     },
     "foodState": {
@@ -109,23 +72,6 @@
         "unit": ["ingredient", "quantity"]
       }
     },
-    "duration": {
-      "$anchor": "duration",
-      "$comment": "All times are in seconds. plannedSeconds is the planning value; basis says whether it comes from the source recipe or is an estimate. If a range is supplied, both bounds are required, and graph validation checks minimum <= planned <= maximum. The conditional rule below requires an explanation note for estimates.",
-      "description": "Planning duration, not an automatic completion trigger. Bounds describe the source range when one is supplied; the validator checks their ordering.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["plannedSeconds", "basis"],
-      "properties": {
-        "plannedSeconds": {"type": "integer", "minimum": 1},
-        "basis": {"enum": ["source", "estimate"]},
-        "minimumSeconds": {"type": "integer", "minimum": 1},
-        "maximumSeconds": {"type": "integer", "minimum": 1},
-        "note": {"$ref": "#nonEmptyString"}
-      },
-      "dependentRequired": {"minimumSeconds": ["maximumSeconds"], "maximumSeconds": ["minimumSeconds"]},
-      "allOf": [{"if": {"properties": {"basis": {"const": "estimate"}}}, "then": {"required": ["note"]}}]
-    },
     "step": {
       "$anchor": "step",
       "$comment": "A step describes one operation, its food inputs and outputs, and the people and equipment it needs. Every step needs at least one input and output. The compiler separately checks references, cycles, portion reuse, and whether all food contributes to a declared recipe output.",
@@ -134,7 +80,8 @@
       "required": [
         "id",
         "instruction",
-        "duration",
+        "scheduled_duration_seconds",
+        "scheduled_duration_source",
         "attention",
         "cooksRequired",
         "equipment",
@@ -145,7 +92,14 @@
       "properties": {
         "id": {"$ref": "#slug"},
         "instruction": {"$ref": "#nonEmptyString"},
-        "duration": {"$ref": "#duration"},
+        "scheduled_duration_seconds": {
+          "description": "Positive integer seconds used for scheduling and calculations, not an automatic completion trigger.",
+          "type": "integer", "minimum": 1
+        },
+        "scheduled_duration_source": {
+          "description": "source when the scheduled value comes from a stated recipe timing (including a value chosen within its range); estimate when inferred or when estimated setup/transfer time is added.",
+          "enum": ["source", "estimate"]
+        },
         "attention": {"enum": ["active", "passive"]},
         "cooksRequired": {"type": "integer", "minimum": 0},
         "equipment": {
@@ -162,12 +116,11 @@
           "items": {"$ref": "#slug"}
         },
         "operation": {
-          "$comment": "A structured action name such as slice or mix, separate from the human instruction. measure is reserved: the compiler generates measure actions from ingredient portions. Matching operation names alone does not prove tasks can be batched.",
-          "$ref": "#slug",
-          "not": {"const": "measure"}
+          "$comment": "A structured action name such as slice or mix, separate from the human instruction. Use measure for an explicit action allocating an ingredient total into one or more quantified purpose-specific food states. Matching operation names alone does not prove tasks can be batched.",
+          "$ref": "#slug"
         },
         "inputs": {
-          "$comment": "References to portion IDs or food-state IDs produced by other steps. These are food references, not action IDs. Referencing a prior output creates a dependency on its producing step.",
+          "$comment": "References to ingredient IDs (for measurement) or food-state IDs produced by other steps. These are food references, not action IDs. Referencing a prior output creates a dependency on its producing step.",
           "type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#slug"}
         },
         "outputs": {
@@ -176,6 +129,17 @@
         }
       },
       "allOf": [
+        {
+          "$comment": "Measurement is authored active work consuming one ingredient or quantified state and producing quantified portions. The graph validator checks identity, compatible units, and conservation of the input quantity.",
+          "if": {"properties": {"operation": {"const": "measure"}}},
+          "then": {
+            "properties": {
+              "attention": {"const": "active"},
+              "inputs": {"maxItems": 1},
+              "outputs": {"items": {"required": ["ingredient", "quantity", "unit"]}}
+            }
+          }
+        },
         {
           "$comment": "All allOf rules apply. This rule requires at least one cook for active work and zero cooks during passive waiting. Passive steps can still occupy equipment.",
           "if": {"properties": {"attention": {"const": "active"}}},

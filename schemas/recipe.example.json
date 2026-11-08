@@ -3,15 +3,10 @@
   "schemaVersion": "1.0",
   "recipeId": "beef-onion-stir-fry",
   "name": "Beef Onion Stir-fry",
-  "source": {
-    "url": "https://thewoksoflife.com/beef-onion-stir-fry/",
-    "publisher": "The Woks of Life",
-    "author": "Sarah"
-  },
   "servings": 4,
   "notes": [
-    "US customary quantities. Each ingredient lists its portions; one generated measuring action per ingredient produces them, and portions are not duplicated inventory.",
-    "Prep durations are planning estimates. Source timing ranges are preserved in duration fields or notes.",
+    "US customary quantities. Each ingredient declares its total; an explicit measuring action produces its purpose-specific portions, and portions are not duplicated inventory.",
+    "Prep durations are planning estimates. Cooking instructions include the source time ranges.",
     "Onion and sauce preparation are independent of marination. Complete both before starting the wok sequence.",
     "dependsOn preserves the source wok order without pretending equipment is a food state.",
     "Use the same wok and burner for the four cooking actions; a future scheduler must preserve that binding and account for resource occupancy between steps.",
@@ -19,51 +14,408 @@
     "Suggested rice accompaniment is outside this graph and would need its own recipe graph.",
     "Outputs become available on confirmed action completion, not merely when an estimated timer expires. Initial ingredients must be available before their consuming actions start.",
     "The marination range records the recipe guidance; it is not a validated storage or safety limit.",
-    "Measurement durations are generated planning estimates. Each measured portion stays separate until its consuming step; measuring shared across recipes is not yet scheduled."
+    "Measurement durations are explicit planning estimates. Each measured portion stays separate until its consuming step; measuring shared across recipes is not yet scheduled."
   ],
-  "outputs": ["finished_stir_fry"],
+  "outputs": [
+    "finished_stir_fry"
+  ],
   "ingredients": {
-    "flank_steak": {"name": "Flank steak", "portions": {"beef": {"quantity": 1, "unit": "lb"}}},
-    "baking_soda": {"name": "Baking soda", "portions": {"marinade_baking_soda": {"quantity": 0.25, "unit": "tsp"}}},
-    "cornstarch": {"name": "Cornstarch", "portions": {"marinade_cornstarch": {"quantity": 1, "unit": "tsp"}}},
+    "flank_steak": {
+      "name": "Flank steak",
+      "quantity": 1,
+      "unit": "lb"
+    },
+    "baking_soda": {
+      "name": "Baking soda",
+      "quantity": 0.25,
+      "unit": "tsp"
+    },
+    "cornstarch": {
+      "name": "Cornstarch",
+      "quantity": 1,
+      "unit": "tsp"
+    },
     "neutral_oil": {
       "name": "Neutral oil",
-      "portions": {
-        "marinade_oil": {"quantity": 1, "unit": "tsp", "name": "Neutral oil for marinade"},
-        "beef_searing_oil": {"quantity": 1, "unit": "tbsp", "name": "Neutral oil for searing beef"},
-        "onion_searing_oil": {"quantity": 1, "unit": "tbsp", "name": "Neutral oil for searing onions"}
-      }
+      "quantity": 7,
+      "unit": "tsp"
     },
     "oyster_sauce": {
       "name": "Oyster sauce",
-      "portions": {
-        "marinade_oyster_sauce": {"quantity": 1, "unit": "tsp", "name": "Oyster sauce for marinade"},
-        "sauce_oyster": {"quantity": 2, "unit": "tsp", "name": "Oyster sauce for sauce"}
-      }
+      "quantity": 3,
+      "unit": "tsp"
     },
     "water": {
       "name": "Water",
-      "portions": {
-        "marinade_water": {"quantity": 1, "unit": "tbsp", "name": "Water for marinade"},
-        "sauce_water": {"quantity": 0.25, "unit": "cup", "name": "Water for sauce"}
-      }
+      "quantity": 5,
+      "unit": "tbsp"
     },
-    "light_soy_sauce": {"name": "Light soy sauce", "portions": {"sauce_light_soy": {"quantity": 1, "unit": "tbsp"}}},
-    "dark_soy_sauce": {"name": "Dark soy sauce", "portions": {"sauce_dark_soy": {"quantity": 1, "unit": "tsp"}}},
-    "ketchup": {"name": "Ketchup", "portions": {"sauce_ketchup": {"quantity": 2, "unit": "tsp"}}},
-    "sugar": {"name": "Sugar", "portions": {"sauce_sugar": {"quantity": 0.25, "unit": "tsp"}}},
-    "sesame_oil": {"name": "Sesame oil", "portions": {"sauce_sesame_oil": {"quantity": 0.25, "unit": "tsp"}}},
-    "onion": {"name": "Small onions", "portions": {"onions": {"quantity": 10, "unit": "oz"}}}
+    "light_soy_sauce": {
+      "name": "Light soy sauce",
+      "quantity": 1,
+      "unit": "tbsp"
+    },
+    "dark_soy_sauce": {
+      "name": "Dark soy sauce",
+      "quantity": 1,
+      "unit": "tsp"
+    },
+    "ketchup": {
+      "name": "Ketchup",
+      "quantity": 2,
+      "unit": "tsp"
+    },
+    "sugar": {
+      "name": "Sugar",
+      "quantity": 0.25,
+      "unit": "tsp"
+    },
+    "sesame_oil": {
+      "name": "Sesame oil",
+      "quantity": 0.25,
+      "unit": "tsp"
+    },
+    "onion": {
+      "name": "Small onions",
+      "quantity": 10,
+      "unit": "oz"
+    }
   },
   "steps": [
     {
+      "id": "measure_flank_steak",
+      "operation": "measure",
+      "instruction": "Measure 1 lb of flank steak.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "flank_steak"
+      ],
+      "outputs": [
+        {
+          "id": "beef",
+          "name": "Flank steak (1 lb)",
+          "ingredient": "flank_steak",
+          "quantity": 1,
+          "unit": "lb"
+        }
+      ]
+    },
+    {
+      "id": "measure_baking_soda",
+      "operation": "measure",
+      "instruction": "Measure 0.25 tsp of baking soda.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "baking_soda"
+      ],
+      "outputs": [
+        {
+          "id": "marinade_baking_soda",
+          "name": "Baking soda (0.25 tsp)",
+          "ingredient": "baking_soda",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_cornstarch",
+      "operation": "measure",
+      "instruction": "Measure 1 tsp of cornstarch.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "cornstarch"
+      ],
+      "outputs": [
+        {
+          "id": "marinade_cornstarch",
+          "name": "Cornstarch (1 tsp)",
+          "ingredient": "cornstarch",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_neutral_oil",
+      "operation": "measure",
+      "instruction": "Measure neutral oil into separate portions: 1 tsp, 1 tbsp, 1 tbsp.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "neutral_oil"
+      ],
+      "outputs": [
+        {
+          "id": "marinade_oil",
+          "name": "Neutral oil for marinade",
+          "ingredient": "neutral_oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "id": "beef_searing_oil",
+          "name": "Neutral oil for searing beef",
+          "ingredient": "neutral_oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "id": "onion_searing_oil",
+          "name": "Neutral oil for searing onions",
+          "ingredient": "neutral_oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_oyster_sauce",
+      "operation": "measure",
+      "instruction": "Measure oyster sauce into separate portions: 1 tsp, 2 tsp.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "oyster_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "marinade_oyster_sauce",
+          "name": "Oyster sauce for marinade",
+          "ingredient": "oyster_sauce",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "id": "sauce_oyster",
+          "name": "Oyster sauce for sauce",
+          "ingredient": "oyster_sauce",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_water",
+      "operation": "measure",
+      "instruction": "Measure water into separate portions: 1 tbsp, 0.25 cup.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons",
+        "measuring_cup"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "water"
+      ],
+      "outputs": [
+        {
+          "id": "marinade_water",
+          "name": "Water for marinade",
+          "ingredient": "water",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "id": "sauce_water",
+          "name": "Water for sauce",
+          "ingredient": "water",
+          "quantity": 0.25,
+          "unit": "cup"
+        }
+      ]
+    },
+    {
+      "id": "measure_light_soy_sauce",
+      "operation": "measure",
+      "instruction": "Measure 1 tbsp of light soy sauce.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "light_soy_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "sauce_light_soy",
+          "name": "Light soy sauce (1 tbsp)",
+          "ingredient": "light_soy_sauce",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_dark_soy_sauce",
+      "operation": "measure",
+      "instruction": "Measure 1 tsp of dark soy sauce.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "dark_soy_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "sauce_dark_soy",
+          "name": "Dark soy sauce (1 tsp)",
+          "ingredient": "dark_soy_sauce",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_ketchup",
+      "operation": "measure",
+      "instruction": "Measure 2 tsp of ketchup.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "ketchup"
+      ],
+      "outputs": [
+        {
+          "id": "sauce_ketchup",
+          "name": "Ketchup (2 tsp)",
+          "ingredient": "ketchup",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_sugar",
+      "operation": "measure",
+      "instruction": "Measure 0.25 tsp of sugar.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "sugar"
+      ],
+      "outputs": [
+        {
+          "id": "sauce_sugar",
+          "name": "Sugar (0.25 tsp)",
+          "ingredient": "sugar",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_sesame_oil",
+      "operation": "measure",
+      "instruction": "Measure 0.25 tsp of sesame oil.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "sesame_oil"
+      ],
+      "outputs": [
+        {
+          "id": "sauce_sesame_oil",
+          "name": "Sesame oil (0.25 tsp)",
+          "ingredient": "sesame_oil",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_onion",
+      "operation": "measure",
+      "instruction": "Measure 10 oz of small onions.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "onion"
+      ],
+      "outputs": [
+        {
+          "id": "onions",
+          "name": "Small onions (10 oz)",
+          "ingredient": "onion",
+          "quantity": 10,
+          "unit": "oz"
+        }
+      ]
+    },
+    {
       "id": "slice_beef",
       "instruction": "Cut beef thinly across its fibers.",
-      "duration": {
-        "plannedSeconds": 300,
-        "basis": "estimate",
-        "note": "Estimated preparation time; the source lists beef already sliced."
-      },
+      "scheduled_duration_seconds": 300,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["meat_knife", "meat_board"],
@@ -74,7 +426,8 @@
     {
       "id": "mix_marinade",
       "instruction": "Work the marinade ingredients into the beef until absorbed.",
-      "duration": {"plannedSeconds": 120, "basis": "estimate", "note": "Estimated mixing time."},
+      "scheduled_duration_seconds": 120,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["marinade_bowl"],
@@ -91,8 +444,9 @@
     },
     {
       "id": "marinate_beef",
-      "instruction": "Let the coated beef marinate.",
-      "duration": {"plannedSeconds": 900, "basis": "source", "minimumSeconds": 900, "maximumSeconds": 1800},
+      "instruction": "Marinate the coated beef for 15–30 minutes.",
+      "scheduled_duration_seconds": 900,
+      "scheduled_duration_source": "source",
       "attention": "passive",
       "cooksRequired": 0,
       "equipment": ["marinade_bowl"],
@@ -103,11 +457,8 @@
     {
       "id": "prep_onions",
       "instruction": "Peel onions and cut into wedges.",
-      "duration": {
-        "plannedSeconds": 180,
-        "basis": "estimate",
-        "note": "Estimated preparation time; the source lists onions already wedged."
-      },
+      "scheduled_duration_seconds": 180,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["vegetable_knife", "vegetable_board"],
@@ -118,11 +469,8 @@
     {
       "id": "mix_sauce",
       "instruction": "Combine the sauce ingredients.",
-      "duration": {
-        "plannedSeconds": 120,
-        "basis": "estimate",
-        "note": "Estimated mixing time; ingredient measurement is modeled separately."
-      },
+      "scheduled_duration_seconds": 120,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["sauce_bowl"],
@@ -141,11 +489,8 @@
     {
       "id": "sear_beef",
       "instruction": "Heat wok on high to smoking; add oil. Spread beef flat, brown undisturbed for 30–60 seconds, then toss for 15–30 seconds. Transfer out partially cooked.",
-      "duration": {
-        "plannedSeconds": 150,
-        "basis": "estimate",
-        "note": "Estimated total including preheating, loading and transfer; source cooking phases total 45–90 seconds."
-      },
+      "scheduled_duration_seconds": 150,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["wok", "burner", "spatula", "beef_holding_plate"],
@@ -157,11 +502,8 @@
     {
       "id": "sear_onions",
       "instruction": "Add oil and wedges to the same wok. Toss for 60–90 seconds until blistered; transfer out.",
-      "duration": {
-        "plannedSeconds": 105,
-        "basis": "estimate",
-        "note": "Estimated total including loading and transfer; source cooking time is 60–90 seconds."
-      },
+      "scheduled_duration_seconds": 105,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["wok", "burner", "spatula", "onion_holding_plate"],
@@ -173,11 +515,8 @@
     {
       "id": "simmer_sauce",
       "instruction": "Bring sauce to a simmer in the same wok; simmer for 15 seconds.",
-      "duration": {
-        "plannedSeconds": 45,
-        "basis": "estimate",
-        "note": "Estimated total includes reaching a simmer; the source specifies 15 seconds after simmering starts."
-      },
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["wok", "burner", "spatula"],
@@ -189,7 +528,8 @@
     {
       "id": "finish_dish",
       "instruction": "Return beef and onions to the sauce; stir together for 30 seconds to finish cooking.",
-      "duration": {"plannedSeconds": 30, "basis": "source"},
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "source",
       "attention": "active",
       "cooksRequired": 1,
       "equipment": ["wok", "burner", "spatula"],
