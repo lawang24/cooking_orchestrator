@@ -1,0 +1,111 @@
+{
+  "$schema": "../schemas/recipe.schema.json",
+  "schemaVersion": "1.0",
+  "recipeId": "scrambled-eggs",
+  "name": "Scrambled Eggs",
+  "servings": 1,
+  "notes": [
+    "Salted butter seasons the eggs and greases the skillet."
+  ],
+  "outputs": [
+    "scrambled_eggs"
+  ],
+  "ingredients": {
+    "egg": {
+      "name": "Large eggs",
+      "quantity": 2,
+      "unit": "whole"
+    },
+    "salted_butter": {
+      "name": "Salted butter",
+      "quantity": 1,
+      "unit": "tsp"
+    }
+  },
+  "steps": [
+    {
+      "id": "measure_egg",
+      "operation": "measure",
+      "instruction": "Measure 2 whole of large eggs.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "dependsOn": [],
+      "inputs": [
+        "egg"
+      ],
+      "outputs": [
+        {
+          "id": "whole_eggs",
+          "name": "Large eggs (2 whole)",
+          "ingredient": "egg",
+          "quantity": 2,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_salted_butter",
+      "operation": "measure",
+      "instruction": "Measure 1 tsp of salted butter.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "salted_butter"
+      ],
+      "outputs": [
+        {
+          "id": "pan_butter",
+          "name": "Salted butter (1 tsp)",
+          "ingredient": "salted_butter",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "beat_eggs",
+      "operation": "beat",
+      "instruction": "Crack the eggs into a bowl. Beat with a fork until the yolks and whites are blended.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["bowl", "fork"],
+      "inputs": ["whole_eggs"],
+      "outputs": [{"id": "beaten_eggs", "name": "Beaten eggs"}]
+    },
+    {
+      "id": "melt_butter",
+      "operation": "melt",
+      "instruction": "Warm the butter in a small nonstick skillet over medium-low heat. Swirl to coat the base as the butter melts.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["skillet", "burner"],
+      "inputs": ["pan_butter"],
+      "outputs": [{"id": "melted_butter", "name": "Melted butter in skillet"}]
+    },
+    {
+      "id": "scramble_eggs",
+      "operation": "scramble",
+      "instruction": "Pour the eggs into the skillet. Gently fold until no liquid egg remains, then serve.",
+      "scheduled_duration_seconds": 120,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": ["skillet", "burner", "spatula", "plate", "bowl"],
+      "inputs": ["beaten_eggs", "melted_butter"],
+      "outputs": [{"id": "scrambled_eggs", "name": "Scrambled eggs"}]
+    }
+  ]
+}

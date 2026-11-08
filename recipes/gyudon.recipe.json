@@ -1,0 +1,593 @@
+{
+  "$schema": "../schemas/recipe.schema.json",
+  "schemaVersion": "1.0",
+  "recipeId": "gyudon",
+  "name": "Gyudon (Japanese Beef & Rice Bowls)",
+  "servings": 4,
+  "notes": [
+    "US customary quantities. This fixed variant uses dashi, fried eggs, and the optional sesame garnish.",
+    "Oil is allocated separately: 2 tablespoons for onions and 2 for eggs, following the article instructions.",
+    "Beef starts already thinly sliced. Rice starts cooked and hot, as specified by the source ingredient list; rice cooking requires a separate graph.",
+    "Additional soy sauce to taste is optional in the source and excluded from this fixed allocation. Stock substitutions are not separate branches.",
+    "All precedence in this graph follows food-flow edges. No extra action dependsOn links are needed.",
+    "Eggs, rice portioning, and scallion preparation can proceed independently of the beef branch. A scheduler should align their completion with final assembly.",
+    "beef_skillet and beef_burner refer to the same physical resources throughout the beef branch; egg_skillet and egg_burner designate a separate pan and burner. A future scheduler must map and reserve them.",
+    "Passive simmering does not require continuous hands-on work, but the cook must remain available to monitor it. The current schema cannot represent intermittent attention.",
+    "Resource quantities such as four serving bowls and equipment occupancy between actions are not modeled by the current equipment list.",
+    "Planned durations marked estimate are inferred, not source timings. Confirm the stated food condition before marking an action complete.",
+    "Outputs represent all four servings collectively. Cleaning and equipment setup outside the described actions are not timed."
+  ],
+  "outputs": [
+    "gyudon_bowls"
+  ],
+  "ingredients": {
+    "onion": {
+      "name": "Medium onions",
+      "quantity": 2,
+      "unit": "whole"
+    },
+    "neutral_oil": {
+      "name": "Neutral oil",
+      "quantity": 4,
+      "unit": "tbsp"
+    },
+    "thinly_sliced_beef": {
+      "name": "Very thinly sliced fatty beef",
+      "quantity": 1,
+      "unit": "lb"
+    },
+    "sugar": {
+      "name": "Sugar",
+      "quantity": 2,
+      "unit": "tsp"
+    },
+    "mirin": {
+      "name": "Mirin",
+      "quantity": 2,
+      "unit": "tbsp"
+    },
+    "soy_sauce": {
+      "name": "Soy sauce",
+      "quantity": 2,
+      "unit": "tbsp"
+    },
+    "dashi_stock": {
+      "name": "Dashi stock",
+      "quantity": 1,
+      "unit": "cup"
+    },
+    "egg": {
+      "name": "Eggs",
+      "quantity": 4,
+      "unit": "whole"
+    },
+    "cooked_white_rice": {
+      "name": "Hot cooked white rice",
+      "quantity": 4,
+      "unit": "cup"
+    },
+    "scallion": {
+      "name": "Scallion",
+      "quantity": 1,
+      "unit": "whole"
+    },
+    "toasted_sesame_seeds": {
+      "name": "Toasted sesame seeds",
+      "quantity": 2,
+      "unit": "tsp"
+    }
+  },
+  "steps": [
+    {
+      "id": "measure_onion",
+      "operation": "measure",
+      "instruction": "Measure 2 whole of medium onions.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "dependsOn": [],
+      "inputs": [
+        "onion"
+      ],
+      "outputs": [
+        {
+          "id": "onions",
+          "name": "Medium onions (2 whole)",
+          "ingredient": "onion",
+          "quantity": 2,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_neutral_oil",
+      "operation": "measure",
+      "instruction": "Measure neutral oil into separate portions: 2 tbsp, 2 tbsp.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "neutral_oil"
+      ],
+      "outputs": [
+        {
+          "id": "onion_oil",
+          "name": "Neutral oil for onions",
+          "ingredient": "neutral_oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "id": "egg_oil",
+          "name": "Neutral oil for eggs",
+          "ingredient": "neutral_oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_thinly_sliced_beef",
+      "operation": "measure",
+      "instruction": "Measure 1 lb of very thinly sliced fatty beef.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "thinly_sliced_beef"
+      ],
+      "outputs": [
+        {
+          "id": "sliced_beef",
+          "name": "Very thinly sliced fatty beef (1 lb)",
+          "ingredient": "thinly_sliced_beef",
+          "quantity": 1,
+          "unit": "lb"
+        }
+      ]
+    },
+    {
+      "id": "measure_sugar",
+      "operation": "measure",
+      "instruction": "Measure 2 tsp of sugar.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "sugar"
+      ],
+      "outputs": [
+        {
+          "id": "topping_sugar",
+          "name": "Sugar (2 tsp)",
+          "ingredient": "sugar",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_mirin",
+      "operation": "measure",
+      "instruction": "Measure 2 tbsp of mirin.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "mirin"
+      ],
+      "outputs": [
+        {
+          "id": "topping_mirin",
+          "name": "Mirin (2 tbsp)",
+          "ingredient": "mirin",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_soy_sauce",
+      "operation": "measure",
+      "instruction": "Measure 2 tbsp of soy sauce.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "soy_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "topping_soy_sauce",
+          "name": "Soy sauce (2 tbsp)",
+          "ingredient": "soy_sauce",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_dashi_stock",
+      "operation": "measure",
+      "instruction": "Measure 1 cup of dashi stock.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_cup"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "dashi_stock"
+      ],
+      "outputs": [
+        {
+          "id": "stock",
+          "name": "Dashi stock (1 cup)",
+          "ingredient": "dashi_stock",
+          "quantity": 1,
+          "unit": "cup"
+        }
+      ]
+    },
+    {
+      "id": "measure_egg",
+      "operation": "measure",
+      "instruction": "Measure 4 whole of eggs.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "dependsOn": [],
+      "inputs": [
+        "egg"
+      ],
+      "outputs": [
+        {
+          "id": "eggs",
+          "name": "Eggs (4 whole)",
+          "ingredient": "egg",
+          "quantity": 4,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_cooked_white_rice",
+      "operation": "measure",
+      "instruction": "Measure 4 cup of hot cooked white rice.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_cup"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "cooked_white_rice"
+      ],
+      "outputs": [
+        {
+          "id": "cooked_rice",
+          "name": "Hot cooked white rice (4 cup)",
+          "ingredient": "cooked_white_rice",
+          "quantity": 4,
+          "unit": "cup"
+        }
+      ]
+    },
+    {
+      "id": "measure_scallion",
+      "operation": "measure",
+      "instruction": "Measure 1 whole of scallion.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "dependsOn": [],
+      "inputs": [
+        "scallion"
+      ],
+      "outputs": [
+        {
+          "id": "garnish_scallion",
+          "name": "Scallion (1 whole)",
+          "ingredient": "scallion",
+          "quantity": 1,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_toasted_sesame_seeds",
+      "operation": "measure",
+      "instruction": "Measure 2 tsp of toasted sesame seeds.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "toasted_sesame_seeds"
+      ],
+      "outputs": [
+        {
+          "id": "sesame",
+          "name": "Toasted sesame seeds (2 tsp)",
+          "ingredient": "toasted_sesame_seeds",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "slice_onions",
+      "instruction": "Peel and slice onions very thinly.",
+      "scheduled_duration_seconds": 240,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "operation": "slice",
+      "inputs": [
+        "onions"
+      ],
+      "outputs": [
+        {
+          "id": "sliced_onions",
+          "name": "Thinly sliced onions"
+        }
+      ]
+    },
+    {
+      "id": "cook_onions",
+      "instruction": "Heat oil over medium-high heat; soften the onions for about 10 minutes, stirring frequently.",
+      "scheduled_duration_seconds": 660,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "beef_skillet",
+        "beef_burner",
+        "spatula"
+      ],
+      "operation": "saute",
+      "inputs": [
+        "onion_oil",
+        "sliced_onions"
+      ],
+      "outputs": [
+        {
+          "id": "softened_onions",
+          "name": "Softened onions with oil"
+        }
+      ]
+    },
+    {
+      "id": "brown_beef",
+      "instruction": "Add beef and sugar to the onions; stir until lightly browned.",
+      "scheduled_duration_seconds": 180,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "beef_skillet",
+        "beef_burner",
+        "spatula"
+      ],
+      "operation": "brown",
+      "inputs": [
+        "softened_onions",
+        "sliced_beef",
+        "topping_sugar"
+      ],
+      "outputs": [
+        {
+          "id": "browned_beef_onions",
+          "name": "Lightly browned beef and onions"
+        }
+      ]
+    },
+    {
+      "id": "add_liquids",
+      "instruction": "Add mirin, soy sauce, and stock; bring to a simmer.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "beef_skillet",
+        "beef_burner",
+        "spatula"
+      ],
+      "operation": "bring_to_simmer",
+      "inputs": [
+        "browned_beef_onions",
+        "topping_mirin",
+        "topping_soy_sauce",
+        "stock"
+      ],
+      "outputs": [
+        {
+          "id": "simmering_beef",
+          "name": "Beef and onions in simmering broth"
+        }
+      ]
+    },
+    {
+      "id": "reduce_sauce",
+      "instruction": "Simmer for 10–15 minutes, until the broth reduces to a light sauce.",
+      "scheduled_duration_seconds": 750,
+      "scheduled_duration_source": "source",
+      "attention": "passive",
+      "cooksRequired": 0,
+      "equipment": [
+        "beef_skillet",
+        "beef_burner"
+      ],
+      "operation": "simmer",
+      "inputs": [
+        "simmering_beef"
+      ],
+      "outputs": [
+        {
+          "id": "reduced_beef",
+          "name": "Beef and onions in reduced sauce"
+        }
+      ]
+    },
+    {
+      "id": "check_seasoning",
+      "instruction": "Taste and check seasoning.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "beef_skillet",
+        "tasting_spoon"
+      ],
+      "operation": "taste",
+      "inputs": [
+        "reduced_beef"
+      ],
+      "outputs": [
+        {
+          "id": "finished_beef",
+          "name": "Finished gyudon beef topping"
+        }
+      ]
+    },
+    {
+      "id": "fry_eggs",
+      "instruction": "Heat oil in a separate skillet and fry four eggs sunny-side up.",
+      "scheduled_duration_seconds": 300,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "egg_skillet",
+        "egg_burner",
+        "egg_spatula"
+      ],
+      "operation": "fry",
+      "inputs": [
+        "eggs",
+        "egg_oil"
+      ],
+      "outputs": [
+        {
+          "id": "fried_eggs",
+          "name": "Four fried eggs"
+        }
+      ]
+    },
+    {
+      "id": "portion_rice",
+      "instruction": "Divide the hot cooked rice among four bowls.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "serving_bowls",
+        "rice_paddle"
+      ],
+      "operation": "portion",
+      "inputs": [
+        "cooked_rice"
+      ],
+      "outputs": [
+        {
+          "id": "rice_bowls",
+          "name": "Four bowls of hot rice"
+        }
+      ]
+    },
+    {
+      "id": "chop_scallion",
+      "instruction": "Trim and chop the scallion.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "operation": "chop",
+      "inputs": [
+        "garnish_scallion"
+      ],
+      "outputs": [
+        {
+          "id": "chopped_scallion",
+          "name": "Chopped scallion"
+        }
+      ]
+    },
+    {
+      "id": "assemble_bowls",
+      "instruction": "Top each rice bowl with beef, sauce, and an egg; garnish with scallion and sesame.",
+      "scheduled_duration_seconds": 120,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "serving_bowls",
+        "serving_spoon"
+      ],
+      "operation": "assemble",
+      "inputs": [
+        "rice_bowls",
+        "finished_beef",
+        "fried_eggs",
+        "chopped_scallion",
+        "sesame"
+      ],
+      "outputs": [
+        {
+          "id": "gyudon_bowls",
+          "name": "Four finished gyudon bowls"
+        }
+      ]
+    }
+  ]
+}
