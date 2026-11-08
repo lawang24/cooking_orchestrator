@@ -1,0 +1,17 @@
+[tool.ty.src]
+include = ["scripts"]
+
+[tool.ty.environment]
+root = ["scripts"]
+python-version = "3.11"
+
+[tool.ty.rules]
+missing-type-argument = "error"
+unsound-return-statement = "error"
+
+[tool.ruff]
+include = ["scripts/**/*.py"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["ANN"]
