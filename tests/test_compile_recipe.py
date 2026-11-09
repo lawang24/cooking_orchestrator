@@ -8,7 +8,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from compile_recipe import compile_recipe
+from compile_recipe import build_graph, compile_recipe, validate_schema
+from validate_recipe_graph import validate_graph
 
 
 class CompilerTests(unittest.TestCase):
@@ -231,6 +232,13 @@ class CompilerTests(unittest.TestCase):
         self.step('slice_beef')['inputs'] = ['missing_beef']
         with self.assertRaisesRegex(ValueError, 'Unknown edge endpoint'):
             compile_recipe(self.recipe)
+
+    def test_graph_construction_leaves_semantic_checks_to_validation(self):
+        self.step('slice_beef')['inputs'] = ['missing_beef']
+        graph = build_graph(validate_schema(self.recipe))
+        self.assertIn({'from': 'missing_beef', 'to': 'slice_beef'}, graph['edges'])
+        self.assertIn('Unknown edge endpoint: missing_beef -> slice_beef.',
+                      validate_graph(graph))
 
     def test_rejects_cycles(self):
         self.step('slice_beef')['dependsOn'] = ['finish_dish']

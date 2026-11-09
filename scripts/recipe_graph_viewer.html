@@ -385,6 +385,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outlin
     }
   }
   function showOverview(open,panelId){
+    stopArrowHold();
     $('overview').hidden=!open;
     $('stepbar').hidden=open;
     const toggle=$('overview-toggle');
@@ -421,8 +422,22 @@ button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outlin
   for(const note of recipe.notes){
     const item=document.createElement('li');item.textContent=note;$('recipe-notes').append(item);
   }
+  let heldArrow=null, arrowTimer;
+  function stopArrowHold(){
+    clearTimeout(arrowTimer);
+    heldArrow=null;
+  }
+  function stepWhileHeld(delay){
+    const button=$(heldArrow==='ArrowRight'?'next':'previous');
+    if(!button.disabled)button.click();
+    if(!button.disabled)arrowTimer=setTimeout(()=>stepWhileHeld(150),delay);
+  }
+  window.addEventListener('blur',stopArrowHold);
+  document.addEventListener('visibilitychange',stopArrowHold);
+  document.addEventListener('keyup',e=>{if(e.key===heldArrow)stopArrowHold();});
   document.addEventListener('keydown',e=>{
-    if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+    if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey){stopArrowHold();return;}
+    if(e.defaultPrevented)return;
     if(!$('overview').hidden){
       if(e.key==='Escape')showOverview(false);
       return;
@@ -430,9 +445,10 @@ button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outlin
     if(e.target.closest('input,select,textarea,[contenteditable]:not([contenteditable="false"])'))return;
     if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
       e.preventDefault();
-      if(e.repeat)return;
-      if(e.key==='ArrowLeft')previousStep();
-      else if(!$('next').disabled)completeAndAdvance();
+      if(e.repeat||heldArrow===e.key)return;
+      stopArrowHold();
+      heldArrow=e.key;
+      stepWhileHeld(350);
     }
   });
   svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoom(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top);},{passive:false});

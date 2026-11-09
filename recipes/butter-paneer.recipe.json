@@ -1,0 +1,1030 @@
+{
+  "$schema": "../schemas/recipe.schema.json",
+  "schemaVersion": "1.0",
+  "recipeId": "butter-paneer",
+  "name": "Butter Paneer (Paneer Butter Masala)",
+  "servings": 4,
+  "notes": [
+    "Start with a block of fresh, soft paneer and with dried fenugreek leaves already crushed. Making the cheese is outside this graph.",
+    "Use a white onion, 3 whole cloves, 12 raw unsalted cashews, 3 tbsp heavy cream and the listed 3/4 tsp salt. One counted piece of cinnamon is a 1/2-inch segment.",
+    "This version omits the optional tomato paste, extra garam masala and cilantro garnish. Rice and naan are outside the graph.",
+    "Melt the butter after blending so the purée is ready to add immediately after the ground chilies bloom in the same pan."
+  ],
+  "outputs": [
+    "butter_paneer"
+  ],
+  "ingredients": {
+    "neutral_oil": {
+      "name": "Neutral oil",
+      "quantity": 2,
+      "unit": "tsp"
+    },
+    "bay_leaf": {
+      "name": "Bay leaf",
+      "quantity": 1,
+      "unit": "whole"
+    },
+    "cinnamon_stick": {
+      "name": "Cinnamon stick (1/2-inch piece)",
+      "quantity": 1,
+      "unit": "whole"
+    },
+    "clove": {
+      "name": "Whole cloves",
+      "quantity": 3,
+      "unit": "whole"
+    },
+    "garlic": {
+      "name": "Garlic cloves",
+      "quantity": 25,
+      "unit": "g"
+    },
+    "ginger": {
+      "name": "Fresh ginger",
+      "quantity": 15,
+      "unit": "g"
+    },
+    "onion": {
+      "name": "White onion",
+      "quantity": 180,
+      "unit": "g"
+    },
+    "tomato": {
+      "name": "Tomatoes",
+      "quantity": 460,
+      "unit": "g"
+    },
+    "cashew": {
+      "name": "Whole raw unsalted cashews",
+      "quantity": 12,
+      "unit": "whole"
+    },
+    "water": {
+      "name": "Water",
+      "quantity": 1,
+      "unit": "cup"
+    },
+    "unsalted_butter": {
+      "name": "Unsalted butter",
+      "quantity": 2,
+      "unit": "tbsp"
+    },
+    "red_chili_powder": {
+      "name": "Red chili powder",
+      "quantity": 0.5,
+      "unit": "tsp"
+    },
+    "kashmiri_chili_powder": {
+      "name": "Kashmiri red chili powder",
+      "quantity": 0.5,
+      "unit": "tsp"
+    },
+    "garam_masala": {
+      "name": "Garam masala",
+      "quantity": 0.5,
+      "unit": "tsp"
+    },
+    "ground_cardamom": {
+      "name": "Ground cardamom",
+      "quantity": 0.25,
+      "unit": "tsp"
+    },
+    "sugar": {
+      "name": "Sugar",
+      "quantity": 1,
+      "unit": "tsp"
+    },
+    "salt": {
+      "name": "Salt",
+      "quantity": 0.75,
+      "unit": "tsp"
+    },
+    "heavy_cream": {
+      "name": "Heavy cream",
+      "quantity": 3,
+      "unit": "tbsp"
+    },
+    "paneer": {
+      "name": "Fresh paneer",
+      "quantity": 250,
+      "unit": "g"
+    },
+    "kasuri_methi": {
+      "name": "Crushed dried fenugreek leaves",
+      "quantity": 2,
+      "unit": "tsp"
+    }
+  },
+  "steps": [
+    {
+      "id": "measure_neutral_oil",
+      "operation": "measure",
+      "instruction": "Measure two 1 tsp portions of neutral oil, one for the whole spices and one for the butter.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "neutral_oil"
+      ],
+      "outputs": [
+        {
+          "id": "whole_spice_oil",
+          "name": "Oil for whole spices",
+          "ingredient": "neutral_oil",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "id": "chili_butter_oil",
+          "name": "Oil for chili butter",
+          "ingredient": "neutral_oil",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_bay_leaf",
+      "operation": "measure",
+      "instruction": "Set aside one bay leaf.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "bay_leaf"
+      ],
+      "outputs": [
+        {
+          "id": "bay_leaf_portion",
+          "name": "Bay leaf",
+          "ingredient": "bay_leaf",
+          "quantity": 1,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_cinnamon_stick",
+      "operation": "measure",
+      "instruction": "Select a 1/2-inch piece of cinnamon stick.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "cinnamon_stick"
+      ],
+      "outputs": [
+        {
+          "id": "cinnamon_stick_portion",
+          "name": "Cinnamon stick (1/2-inch piece)",
+          "ingredient": "cinnamon_stick",
+          "quantity": 1,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_clove",
+      "operation": "measure",
+      "instruction": "Count out three whole cloves.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "clove"
+      ],
+      "outputs": [
+        {
+          "id": "clove_portion",
+          "name": "Whole cloves",
+          "ingredient": "clove",
+          "quantity": 3,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_garlic",
+      "operation": "measure",
+      "instruction": "Weigh 25 g of garlic cloves.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "inputs": [
+        "garlic"
+      ],
+      "outputs": [
+        {
+          "id": "garlic_portion",
+          "name": "Garlic cloves",
+          "ingredient": "garlic",
+          "quantity": 25,
+          "unit": "g"
+        }
+      ]
+    },
+    {
+      "id": "measure_ginger",
+      "operation": "measure",
+      "instruction": "Weigh 15 g of ginger.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "inputs": [
+        "ginger"
+      ],
+      "outputs": [
+        {
+          "id": "ginger_portion",
+          "name": "Fresh ginger",
+          "ingredient": "ginger",
+          "quantity": 15,
+          "unit": "g"
+        }
+      ]
+    },
+    {
+      "id": "measure_onion",
+      "operation": "measure",
+      "instruction": "Weigh out a large white onion, about 180 g.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "inputs": [
+        "onion"
+      ],
+      "outputs": [
+        {
+          "id": "onion_portion",
+          "name": "White onion",
+          "ingredient": "onion",
+          "quantity": 180,
+          "unit": "g"
+        }
+      ]
+    },
+    {
+      "id": "measure_tomato",
+      "operation": "measure",
+      "instruction": "Weigh out 460 g of tomatoes.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "inputs": [
+        "tomato"
+      ],
+      "outputs": [
+        {
+          "id": "tomato_portion",
+          "name": "Tomatoes",
+          "ingredient": "tomato",
+          "quantity": 460,
+          "unit": "g"
+        }
+      ]
+    },
+    {
+      "id": "measure_cashew",
+      "operation": "measure",
+      "instruction": "Count out 12 raw unsalted cashews.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "cashew"
+      ],
+      "outputs": [
+        {
+          "id": "cashew_portion",
+          "name": "Whole raw unsalted cashews",
+          "ingredient": "cashew",
+          "quantity": 12,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_water",
+      "operation": "measure",
+      "instruction": "Measure 1 cup of water.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_cup"
+      ],
+      "inputs": [
+        "water"
+      ],
+      "outputs": [
+        {
+          "id": "water_portion",
+          "name": "Water",
+          "ingredient": "water",
+          "quantity": 1,
+          "unit": "cup"
+        }
+      ]
+    },
+    {
+      "id": "measure_unsalted_butter",
+      "operation": "measure",
+      "instruction": "Measure 2 tbsp of unsalted butter.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "unsalted_butter"
+      ],
+      "outputs": [
+        {
+          "id": "unsalted_butter_portion",
+          "name": "Unsalted butter",
+          "ingredient": "unsalted_butter",
+          "quantity": 2,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_red_chili_powder",
+      "operation": "measure",
+      "instruction": "Measure 1/2 tsp of red chili powder.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "red_chili_powder"
+      ],
+      "outputs": [
+        {
+          "id": "red_chili_powder_portion",
+          "name": "Red chili powder",
+          "ingredient": "red_chili_powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_kashmiri_chili_powder",
+      "operation": "measure",
+      "instruction": "Measure 1/2 tsp of Kashmiri red chili powder.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "kashmiri_chili_powder"
+      ],
+      "outputs": [
+        {
+          "id": "kashmiri_chili_powder_portion",
+          "name": "Kashmiri red chili powder",
+          "ingredient": "kashmiri_chili_powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_garam_masala",
+      "operation": "measure",
+      "instruction": "Measure 1/2 tsp of garam masala.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "garam_masala"
+      ],
+      "outputs": [
+        {
+          "id": "garam_masala_portion",
+          "name": "Garam masala",
+          "ingredient": "garam_masala",
+          "quantity": 0.5,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_ground_cardamom",
+      "operation": "measure",
+      "instruction": "Measure 1/4 tsp of ground cardamom.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "ground_cardamom"
+      ],
+      "outputs": [
+        {
+          "id": "ground_cardamom_portion",
+          "name": "Ground cardamom",
+          "ingredient": "ground_cardamom",
+          "quantity": 0.25,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_sugar",
+      "operation": "measure",
+      "instruction": "Measure 1 tsp of sugar.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "sugar"
+      ],
+      "outputs": [
+        {
+          "id": "sugar_portion",
+          "name": "Sugar",
+          "ingredient": "sugar",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_salt",
+      "operation": "measure",
+      "instruction": "Measure 3/4 tsp of salt.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "salt"
+      ],
+      "outputs": [
+        {
+          "id": "salt_portion",
+          "name": "Salt",
+          "ingredient": "salt",
+          "quantity": 0.75,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_heavy_cream",
+      "operation": "measure",
+      "instruction": "Measure 3 tbsp of heavy cream.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "heavy_cream"
+      ],
+      "outputs": [
+        {
+          "id": "heavy_cream_portion",
+          "name": "Heavy cream",
+          "ingredient": "heavy_cream",
+          "quantity": 3,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_paneer",
+      "operation": "measure",
+      "instruction": "Weigh out 250 g of fresh paneer.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "inputs": [
+        "paneer"
+      ],
+      "outputs": [
+        {
+          "id": "paneer_portion",
+          "name": "Fresh paneer",
+          "ingredient": "paneer",
+          "quantity": 250,
+          "unit": "g"
+        }
+      ]
+    },
+    {
+      "id": "measure_kasuri_methi",
+      "operation": "measure",
+      "instruction": "Measure 2 tsp of crushed dried fenugreek leaves (kasuri methi).",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "kasuri_methi"
+      ],
+      "outputs": [
+        {
+          "id": "kasuri_methi_portion",
+          "name": "Crushed dried fenugreek leaves",
+          "ingredient": "kasuri_methi",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "chop_garlic",
+      "operation": "cut",
+      "instruction": "Peel and roughly chop the garlic.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "garlic_portion"
+      ],
+      "outputs": [
+        {
+          "id": "chopped_garlic",
+          "name": "Roughly chopped garlic"
+        }
+      ]
+    },
+    {
+      "id": "chop_ginger",
+      "operation": "cut",
+      "instruction": "Peel and roughly chop the ginger.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "ginger_portion"
+      ],
+      "outputs": [
+        {
+          "id": "chopped_ginger",
+          "name": "Roughly chopped ginger"
+        }
+      ]
+    },
+    {
+      "id": "chop_onion",
+      "operation": "cut",
+      "instruction": "Peel the onion and roughly chop it.",
+      "scheduled_duration_seconds": 90,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "onion_portion"
+      ],
+      "outputs": [
+        {
+          "id": "chopped_onion",
+          "name": "Roughly chopped onion"
+        }
+      ]
+    },
+    {
+      "id": "chop_tomato",
+      "operation": "cut",
+      "instruction": "Core and roughly chop the tomatoes.",
+      "scheduled_duration_seconds": 120,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "tomato_portion"
+      ],
+      "outputs": [
+        {
+          "id": "chopped_tomato",
+          "name": "Roughly chopped tomato"
+        }
+      ]
+    },
+    {
+      "id": "cube_paneer",
+      "operation": "cut",
+      "instruction": "Cut the paneer block into bite-size cubes.",
+      "scheduled_duration_seconds": 75,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "paneer_portion"
+      ],
+      "outputs": [
+        {
+          "id": "paneer_cubes",
+          "name": "Paneer cubes"
+        }
+      ]
+    },
+    {
+      "id": "bloom_whole_spices",
+      "operation": "saute",
+      "instruction": "Heat the first portion of oil over medium heat. Add the bay leaf, cinnamon and cloves and stir for a few seconds until fragrant.",
+      "scheduled_duration_seconds": 70,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "whole_spice_oil",
+        "bay_leaf_portion",
+        "cinnamon_stick_portion",
+        "clove_portion"
+      ],
+      "outputs": [
+        {
+          "id": "bloomed_spices",
+          "name": "Whole spices in fragrant oil"
+        }
+      ]
+    },
+    {
+      "id": "saute_aromatics",
+      "operation": "saute",
+      "instruction": "Stir the onion, garlic and ginger into the spiced oil for 2–3 minutes, until the onion turns translucent.",
+      "scheduled_duration_seconds": 150,
+      "scheduled_duration_source": "source",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "bloomed_spices",
+        "chopped_onion",
+        "chopped_garlic",
+        "chopped_ginger"
+      ],
+      "outputs": [
+        {
+          "id": "soft_aromatics",
+          "name": "Softened aromatics with whole spices"
+        }
+      ]
+    },
+    {
+      "id": "start_tomato_base",
+      "operation": "mix",
+      "instruction": "Stir in the tomatoes and cashews, add the water, then cover the pan.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula",
+        "lid"
+      ],
+      "inputs": [
+        "soft_aromatics",
+        "chopped_tomato",
+        "cashew_portion",
+        "water_portion"
+      ],
+      "outputs": [
+        {
+          "id": "covered_base",
+          "name": "Covered tomato and cashew base"
+        }
+      ]
+    },
+    {
+      "id": "simmer_base",
+      "operation": "simmer",
+      "instruction": "Cook covered over medium heat for 15 minutes, until the tomatoes have softened.",
+      "scheduled_duration_seconds": 900,
+      "scheduled_duration_source": "source",
+      "attention": "passive",
+      "cooksRequired": 0,
+      "equipment": [
+        "pan",
+        "burner",
+        "lid"
+      ],
+      "inputs": [
+        "covered_base"
+      ],
+      "outputs": [
+        {
+          "id": "cooked_base",
+          "name": "Cooked tomato and cashew base"
+        }
+      ]
+    },
+    {
+      "id": "remove_whole_spices",
+      "operation": "remove",
+      "instruction": "Take the pan off the heat. Uncover and lift out the bay leaf, cinnamon and all three cloves.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "lid",
+        "spoon"
+      ],
+      "inputs": [
+        "cooked_base"
+      ],
+      "outputs": [
+        {
+          "id": "base_without_spices",
+          "name": "Cooked base with whole spices removed"
+        }
+      ]
+    },
+    {
+      "id": "cool_base",
+      "operation": "cool",
+      "instruction": "Let the base cool in the pan until it can be safely processed in your blender.",
+      "scheduled_duration_seconds": 600,
+      "scheduled_duration_source": "estimate",
+      "attention": "passive",
+      "cooksRequired": 0,
+      "equipment": [
+        "pan"
+      ],
+      "inputs": [
+        "base_without_spices"
+      ],
+      "outputs": [
+        {
+          "id": "cooled_base",
+          "name": "Base cooled for blending"
+        }
+      ]
+    },
+    {
+      "id": "blend_base",
+      "operation": "blend",
+      "instruction": "Transfer the cooled base to a blender and purée until smooth.",
+      "scheduled_duration_seconds": 90,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "blender",
+        "spatula"
+      ],
+      "inputs": [
+        "cooled_base"
+      ],
+      "outputs": [
+        {
+          "id": "smooth_base",
+          "name": "Smooth tomato and cashew purée"
+        }
+      ]
+    },
+    {
+      "id": "melt_butter",
+      "operation": "melt",
+      "instruction": "Melt the butter with the second portion of oil over medium heat in the emptied pan.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "unsalted_butter_portion",
+        "chili_butter_oil"
+      ],
+      "outputs": [
+        {
+          "id": "melted_butter",
+          "name": "Melted butter and oil"
+        }
+      ],
+      "dependsOn": [
+        "blend_base"
+      ]
+    },
+    {
+      "id": "bloom_chilies",
+      "operation": "saute",
+      "instruction": "Stir both chili powders into the melted butter for a few seconds, just until the fat turns orange-red.",
+      "scheduled_duration_seconds": 10,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "melted_butter",
+        "red_chili_powder_portion",
+        "kashmiri_chili_powder_portion"
+      ],
+      "outputs": [
+        {
+          "id": "chili_butter",
+          "name": "Orange-red chili butter"
+        }
+      ]
+    },
+    {
+      "id": "season_sauce",
+      "operation": "simmer",
+      "instruction": "Stir the purée into the chili butter with the garam masala, cardamom, sugar and salt. Cook for 1–2 minutes.",
+      "scheduled_duration_seconds": 90,
+      "scheduled_duration_source": "source",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "smooth_base",
+        "chili_butter",
+        "garam_masala_portion",
+        "ground_cardamom_portion",
+        "sugar_portion",
+        "salt_portion"
+      ],
+      "outputs": [
+        {
+          "id": "seasoned_sauce",
+          "name": "Seasoned tomato and cashew sauce"
+        }
+      ]
+    },
+    {
+      "id": "add_cream",
+      "operation": "mix",
+      "instruction": "Stir the cream into the sauce until evenly blended.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "seasoned_sauce",
+        "heavy_cream_portion"
+      ],
+      "outputs": [
+        {
+          "id": "cream_sauce",
+          "name": "Creamy masala sauce"
+        }
+      ]
+    },
+    {
+      "id": "warm_paneer",
+      "operation": "simmer",
+      "instruction": "Fold in the paneer cubes and cook over medium heat for 2–3 minutes, until warmed through and still tender.",
+      "scheduled_duration_seconds": 150,
+      "scheduled_duration_source": "source",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "cream_sauce",
+        "paneer_cubes"
+      ],
+      "outputs": [
+        {
+          "id": "paneer_in_sauce",
+          "name": "Warm paneer in masala sauce"
+        }
+      ]
+    },
+    {
+      "id": "finish_curry",
+      "operation": "mix",
+      "instruction": "Fold in the crushed fenugreek leaves, take the pan off the heat and serve hot.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "pan",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "paneer_in_sauce",
+        "kasuri_methi_portion"
+      ],
+      "outputs": [
+        {
+          "id": "butter_paneer",
+          "name": "Butter paneer"
+        }
+      ]
+    }
+  ]
+}

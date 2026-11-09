@@ -26,6 +26,16 @@ def compile_recipe(recipe: object) -> CompiledGraph:
     Ingredient totals and all actions, including measurements, are authored.
     Compilation never invents or batches steps.
     """
+    validated_recipe = validate_schema(recipe)
+    graph = build_graph(validated_recipe)
+    errors = validate_graph(graph)
+    if errors:
+        raise ValueError('Invalid recipe:\n' + '\n'.join(errors))
+    return graph
+
+
+def validate_schema(recipe: object) -> Recipe:
+    """Validate the input contract and return the typed recipe; raise on errors."""
     schema = json.loads(SCHEMA_PATH.read_text())
     Draft202012Validator.check_schema(schema)
     validator = cast(Validator, Draft202012Validator(schema, format_checker=FormatChecker()))
@@ -33,13 +43,13 @@ def compile_recipe(recipe: object) -> CompiledGraph:
     if errors:
         raise ValueError('Invalid recipe:\n' + '\n'.join(errors))
 
-    graph = build_graph(cast(Recipe, recipe))
-
-    return graph
+    return cast(Recipe, recipe)
 
 
 def build_graph(recipe: Recipe) -> CompiledGraph:
-    """Build a graph from one validated recipe. Meal composition operates on graphs.
+    """Build a graph from a schema-validated recipe without checking graph semantics.
+
+    Meal composition operates on graphs.
 
     Example (required metadata and action details omitted for brevity):
 
@@ -135,11 +145,6 @@ def build_graph(recipe: Recipe) -> CompiledGraph:
             graph['nodes'].append({'type': 'food_state', **deepcopy(output)})
             graph['edges'].append({'from': step['id'], 'to': output['id']})
 
-    # Check the completed graph for semantic problems such as duplicate IDs,
-    # invalid food flow, cycles, or nodes that cannot reach a declared output.
-    errors = validate_graph(graph)
-    if errors:
-        raise ValueError('Invalid recipe:\n' + '\n'.join(errors))
     return graph
 
 

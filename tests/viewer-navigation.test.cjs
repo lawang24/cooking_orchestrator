@@ -36,20 +36,25 @@ function viewer(recipe = 'gyudon') {
   assert.deepEqual(errors, [], 'Viewer should start without script errors');
   const document = dom.window.document;
   const get = id => document.getElementById(id);
-  const key = (value, target=document.body, options={}) => {
-    const event = new dom.window.KeyboardEvent('keydown', {key:value,bubbles:true,cancelable:true,...options});
+  const sendKey = (type, value, target=document.body, options={}) => {
+    const event = new dom.window.KeyboardEvent(type, {key:value,bubbles:true,cancelable:true,...options});
     target.dispatchEvent(event);
     assert.deepEqual(errors, [], 'Keyboard navigation should not throw');
     return event;
+  };
+  const key = (value, target, options) => {
+    const down = sendKey('keydown', value, target, options);
+    sendKey('keyup', value, target, options);
+    return down;
   };
   const selected = () => [...document.querySelectorAll('.node.selected')].map(el=>el.dataset.id);
   const panel = id => document.querySelector(`button[aria-controls="${id}-panel"]`).click();
   const toggle = () => get('overview-toggle').click();
   const instruction = () => get('step-instruction').textContent;
-  return {dom, document, get, key, selected, panel, toggle, instruction};
+  return {dom, document, get, key, sendKey, selected, panel, toggle, instruction};
 }
 
-test('focus shows only the current action and navigation clamps at both ends', t => {
+test('focus shows only the current action and navigation stops at both ends', t => {
   const v = viewer();
   t.after(() => v.dom.window.close());
   const graph = JSON.parse(v.get('recipe-data').textContent);
@@ -66,6 +71,7 @@ test('focus shows only the current action and navigation clamps at both ends', t
     assert.equal(v.instruction(), instruction);
     assert.equal(v.key('ArrowRight').defaultPrevented, true);
   }
+  v.key('ArrowRight');
   assert.equal(v.get('next').disabled, true);
   assert.equal(v.instruction(), instructions.at(-1));
   v.key('ArrowLeft'); // Undo the final confirmation.
@@ -74,6 +80,35 @@ test('focus shows only the current action and navigation clamps at both ends', t
     v.key('ArrowLeft');
     assert.equal(v.instruction(), instructions[i]);
   }
+  v.key('ArrowLeft');
+  assert.equal(v.instruction(), instructions[0]);
+  assert.equal(v.get('previous').disabled, true);
+});
+
+test('a sustained arrow press updates the main minimap until released', async t => {
+  const v = viewer();
+  t.after(() => v.dom.window.close());
+  const map = v.get('map-button');
+  const count = () => Number.parseInt(v.get('map-count').textContent);
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  map.focus();
+  v.sendKey('keydown', 'ArrowRight', map);
+  v.sendKey('keydown', 'ArrowRight', map, {repeat:true});
+  assert.equal(count(), 1, 'native repeats must not double-advance');
+  await wait(700);
+  v.sendKey('keyup', 'ArrowRight', map);
+  const afterRight = count();
+  assert.ok(afterRight >= 3);
+  await wait(400);
+  assert.equal(count(), afterRight, 'release stops forward navigation');
+
+  v.sendKey('keydown', 'ArrowLeft', map);
+  await wait(550);
+  v.sendKey('keyup', 'ArrowLeft', map);
+  const afterLeft = count();
+  assert.ok(afterLeft <= afterRight - 2);
+  await wait(400);
+  assert.equal(count(), afterLeft, 'release stops rewind');
 });
 
 test('progress tracks navigation and choosing a listed action returns to focus', t => {
