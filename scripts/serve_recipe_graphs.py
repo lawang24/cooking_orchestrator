@@ -32,7 +32,7 @@ def build_site(recipes: Path, output: Path) -> list[str]:
         page = 'index.recipe.html' if recipe_id == 'index' else recipe_id + '.html'
         if page in pages:
             raise ValueError(f'Duplicate recipe ID: {recipe_id}')
-        (output / page).write_text(render_graph(graph), encoding='utf-8')
+        (output / page).write_text(render_graph(graph, has_recipe_index=True), encoding='utf-8')
         pages.append(page)
         links.append(
             f'<li><a href="{escape(page)}"><span class="name">{escape(graph["name"])}</span>'

@@ -54,7 +54,7 @@ def action_order(graph: CompiledGraph) -> list[str]:
     return ordered
 
 
-def render_graph(graph: CompiledGraph) -> str:
+def render_graph(graph: CompiledGraph, *, has_recipe_index: bool = False) -> str:
     # Reject invalid graph data before handing it to the React static renderer.
     errors = validate_graph(graph)
     if errors:
@@ -68,7 +68,7 @@ def render_graph(graph: CompiledGraph) -> str:
     try:
         result = subprocess.run(
             ['node', str(renderer)],
-            input=json.dumps({'graph': graph, 'steps': action_order(graph)}),
+            input=json.dumps({'graph': graph, 'steps': action_order(graph), 'hasRecipeIndex': has_recipe_index}),
             capture_output=True, text=True, encoding='utf-8', check=False,
         )
     except FileNotFoundError as error:

@@ -178,6 +178,7 @@ builds the React viewer and regenerates every recipe on startup, then serves onl
 directory, bound to localhost. Restart after source changes, then refresh the
 page. Stop with Ctrl+C; choose another port with `npm run dev -- --port 8767`.
 
+- Select the **Cooking Orchestrator** logo at the top of a recipe to return to the full recipe list.
 - After **Start recipe**, each assigned action starts immediately. A hands-on action stays current until you choose **Done**. A passive action moves to **In progress** and the viewer offers the next eligible task. Each passive task has its own **Done** button, available even while you work on another action. Occasional stirring can stay in the passive instruction.
 - **Undo last action** reverses the last completion and restores the tasks that were running at that point. **Right** activates the main button and **Left** undoes the last change. Progress lasts until reload.
 - The bottom-right minimap shows one dot per action. Links run from earlier actions to the actions that use their food or require them to finish first. A ring marks the current action, and green dots mark completed actions. Click the minimap to explore those actions in detail.

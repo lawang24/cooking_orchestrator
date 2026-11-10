@@ -258,17 +258,42 @@ summary:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
-#overview-toggle {
-  position: fixed;
-  top: 18px;
-  right: clamp(16px, 3vw, 40px);
+.viewer-nav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  padding: 12px clamp(16px, 3vw, 40px);
+  background: var(--bg);
   z-index: 1;
+}
+#overview-toggle {
+  margin-left: auto;
+}
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.wordmark:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.wordmark:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+#overview-toggle {
   min-height: 44px;
   border-radius: 24px;
   padding: 8px 18px;
 }
 #stepbar {
-  min-height: 100dvh;
+  min-height: calc(100dvh - 68px);
   display: grid;
   grid-template-rows: 1fr auto 1fr;
   place-items: center;
@@ -349,7 +374,7 @@ summary:focus-visible {
 }
 @media (max-height: 520px) {
   #stepbar {
-    grid-template-rows: 56px auto 1fr;
+    grid-template-rows: 0 auto 1fr;
     row-gap: 12px;
   }
 }
@@ -412,7 +437,6 @@ summary:focus-visible {
   padding: 20px clamp(16px, 3vw, 40px);
   border-bottom: 1px solid var(--line);
   min-height: 80px;
-  padding-right: 150px;
 }
 #overview h1 {
   font:
@@ -559,9 +583,6 @@ summary:focus-visible {
 .running-tasks button {
   flex-shrink: 0;
   min-height: 44px;
-}
-#stepbar {
-  padding-top: 72px;
 }
 
 .ingredient-review {

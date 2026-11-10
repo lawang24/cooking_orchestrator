@@ -7,11 +7,11 @@ import type { ViewerData } from "./types";
 
 const input: Buffer[] = [];
 for await (const chunk of process.stdin) input.push(Buffer.from(chunk));
-const { graph, steps } = JSON.parse(
+const { graph, steps, hasRecipeIndex } = JSON.parse(
   Buffer.concat(input).toString("utf8"),
 ) as ViewerData;
 const { prelude } = await prerenderToNodeStream(
-  <App graph={graph} steps={steps} />,
+  <App graph={graph} steps={steps} hasRecipeIndex={hasRecipeIndex} />,
 );
 prelude.setEncoding("utf8");
 let markup = "";
@@ -43,7 +43,7 @@ process.stdout.write(`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escape(graph.name)} — recipe graph</title>
 <style>${style.replace(/<\/style/gi, "<\\/style")}</style></head><body>
-<div id="root">${markup}</div>
+<div id="root"${hasRecipeIndex ? ' data-recipe-index' : ''}>${markup}</div>
 <script id="recipe-data" type="application/json">${json(graph)}</script>
 <script id="step-data" type="application/json">${json(steps)}</script>
 <script>/* Dagre license\n${license}\n${dependencyLicenses.replace(/\*\//g, "* /").replace(/<\/script/gi, "<\\/script")}\n*/\n${script.replace(/<\/script/gi, "<\\/script")}</script>

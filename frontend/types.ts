@@ -63,6 +63,7 @@ export interface CompiledGraph {
   edges: Edge[];
 }
 export interface ViewerData {
+  hasRecipeIndex?: boolean;
   graph: CompiledGraph;
   steps: string[];
 }

@@ -27,7 +27,7 @@ type PlayerEvent =
   | { type: "undo" }
   | { type: "finish"; id: string };
 
-export function App({ graph, steps }: ViewerData) {
+export function App({ graph, steps, hasRecipeIndex }: ViewerData) {
   const model = useMemo(() => createModel({ graph, steps }), [graph, steps]);
   const schedule = useMemo(
     () => createSchedule(model.actions, model.actionLinks),
@@ -80,6 +80,24 @@ export function App({ graph, steps }: ViewerData) {
   useArrowNavigation(started, overview, closeOverview);
   return (
     <div id="viewer" data-hydrated={ready ? "true" : "false"}>
+      <nav className="viewer-nav" aria-label="Recipe navigation" hidden={!hasRecipeIndex && !started}>
+        {hasRecipeIndex && (
+          <a className="wordmark" href="./index.html" aria-label="Cooking Orchestrator home">
+            Cooking Orchestrator
+          </a>
+        )}
+        <button
+          id="overview-toggle"
+          ref={toggle}
+          type="button"
+          hidden={!started}
+          aria-expanded={overview}
+          aria-controls="overview"
+          onClick={() => showOverview(!overview)}
+        >
+          {overview ? "Back to step" : "Overview"}
+        </button>
+      </nav>
       {ready && !started && (
         <main className="ingredient-review" aria-labelledby="recipe-title">
           <h1 id="recipe-title">{graph.name}</h1>
@@ -91,17 +109,6 @@ export function App({ graph, steps }: ViewerData) {
           </button>
         </main>
       )}
-      <button
-        id="overview-toggle"
-        ref={toggle}
-        type="button"
-        hidden={!started}
-        aria-expanded={overview}
-        aria-controls="overview"
-        onClick={() => showOverview(!overview)}
-      >
-        {overview ? "Back to step" : "Overview"}
-      </button>
       <StepPlayer
         model={model}
         node={node}

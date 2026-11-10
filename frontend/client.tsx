@@ -9,7 +9,8 @@ const graph: ViewerData["graph"] = JSON.parse(
 const steps: ViewerData["steps"] = JSON.parse(
   document.getElementById("step-data")!.textContent!,
 );
+const root = document.getElementById("root")!;
 hydrateRoot(
-  document.getElementById("root")!,
-  <App graph={graph} steps={steps} />,
+  root,
+  <App graph={graph} steps={steps} hasRecipeIndex={root.hasAttribute("data-recipe-index")} />,
 );

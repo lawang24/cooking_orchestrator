@@ -68,7 +68,9 @@ class ViewerTests(unittest.TestCase):
             self.assertNotIn('old-dish.html', picker)
             self.assertIn('href="index.recipe.html"', picker)
             self.assertIn('Eggs &amp; &lt;toast&gt;', picker)
-            self.assertIn('id="recipe-data"', (output / 'index.recipe.html').read_text())
+            detail = (output / 'index.recipe.html').read_text()
+            self.assertIn('id="recipe-data"', detail)
+            self.assertIn('href="./index.html"', detail)
 
     def test_untrusted_text_cannot_close_data_script(self):
         graph = copy.deepcopy(self.graph)
