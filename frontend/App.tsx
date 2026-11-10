@@ -14,13 +14,18 @@ import { StepPlayer } from "./components/StepPlayer";
 import { useArrowNavigation } from "./useArrowNavigation";
 
 import {
-  advance,
+  finishTask,
+  startAssignedTasks,
   createSchedule,
   currentAction,
   initialCookingState,
-  type CookingEvent,
   type CookingState,
 } from "./scheduler";
+
+type PlayerEvent =
+  | { type: "startRecipe" }
+  | { type: "undo" }
+  | { type: "finish"; id: string };
 
 export function App({ graph, steps }: ViewerData) {
   const model = useMemo(() => createModel({ graph, steps }), [graph, steps]);
@@ -29,16 +34,20 @@ export function App({ graph, steps }: ViewerData) {
     [model],
   );
   const [history, dispatch] = useReducer(
-    (history: CookingState[], event: CookingEvent | { type: "undo" }) => {
+    (history: CookingState[], event: PlayerEvent) => {
       if (event.type === "undo")
         return history.length > 1 ? history.slice(0, -1) : history;
+      if (event.type === "startRecipe")
+        return history.length ? history : [startAssignedTasks(schedule, initialCookingState)];
       const state = history[history.length - 1];
-      const next = advance(schedule, state, event);
+      if (!state) return history;
+      const next = finishTask(schedule, state, event.id);
       return next === state ? history : [...history, next];
     },
-    [initialCookingState],
+    [] as CookingState[],
   );
-  const state = history[history.length - 1];
+  const started = history.length > 0;
+  const state = history[history.length - 1] ?? initialCookingState;
   const current = currentAction(schedule, state);
   const [preview, setPreview] = useState<string>();
   const node = preview
@@ -49,7 +58,6 @@ export function App({ graph, steps }: ViewerData) {
     [model, state.done],
   );
   const [ready, setReady] = useState(false);
-  const [started, setStarted] = useState(false);
   const [overview, setOverview] = useState(false);
   const [panel, setPanel] = useState("progress");
   const toggle = useRef<HTMLButtonElement>(null);
@@ -78,7 +86,7 @@ export function App({ graph, steps }: ViewerData) {
           {graph.servings && <p className="muted">Serves {graph.servings}</p>}
           <h2>Ingredients</h2>
           <IngredientList graph={graph} />
-          <button type="button" id="start-recipe" onClick={() => setStarted(true)}>
+          <button type="button" id="start-recipe" onClick={() => dispatch({ type: "startRecipe" })}>
             Start recipe
           </button>
         </main>
@@ -103,7 +111,7 @@ export function App({ graph, steps }: ViewerData) {
         hidden={!started || overview}
         onUndo={() => dispatch({ type: "undo" })}
         onReturn={() => setPreview(undefined)}
-        onEvent={dispatch}
+        onFinish={(id) => dispatch({ type: "finish", id })}
         onMap={() => showOverview(true, "graph")}
       />
       <section id="overview" aria-label="Overview" hidden={ready && !overview}>

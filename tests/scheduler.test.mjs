@@ -4,7 +4,8 @@ import {
   createSchedule,
   currentAction,
   initialCookingState,
-  advance,
+  finishTask,
+  startAssignedTasks,
 } from "../frontend/scheduler.ts";
 
 function task(id, attention, seconds, equipment = []) {
@@ -26,23 +27,16 @@ test("passive tasks can finish independently while the cook works", () => {
     [chop, water, sauce, pasta],
     [{ from: "water", to: "pasta" }],
   );
-  let state = initialCookingState;
-  function start(id) {
-    assert.equal(currentAction(plan, state)?.id, id);
-    state = advance(plan, state, { type: "start", id });
-  }
+  let state = startAssignedTasks(plan, initialCookingState);
   function finish(id) {
-    state = advance(plan, state, { type: "finish", id });
+    state = finishTask(plan, state, id);
   }
-  start("sauce");
-  start("water");
-  assert.deepEqual([...state.running], ["sauce", "water"]);
-  start("chop");
+  assert.deepEqual([...state.running], ["sauce", "water", "chop"]);
   finish("water");
   assert.equal(currentAction(plan, state).id, "chop");
-  assert.equal(advance(plan, state, { type: "start", id: "pasta" }), state);
+  assert.equal(finishTask(plan, state, "pasta"), state);
   finish("chop");
-  start("pasta");
+  assert.equal(currentAction(plan, state).id, "pasta");
   finish("pasta");
   assert.equal(currentAction(plan, state), undefined);
   assert.deepEqual([...state.running], ["sauce"]);
@@ -59,26 +53,19 @@ test("readiness requires finished prerequisites, free equipment and enough cooks
     { ...task("lift", "active", 90), cooksRequired: 2 },
   ];
   const plan = createSchedule(actions, [{ from: "heat", to: "use_water" }]);
-  assert.equal(
-    currentAction(plan, initialCookingState).id,
-    "heat",
-    "downstream work counts toward priority",
-  );
-  let state = advance(plan, initialCookingState, { type: "start", id: "heat" });
-  assert.equal(advance(plan, state, { type: "start", id: "heat" }), state);
+  let state = startAssignedTasks(plan, initialCookingState);
+  assert.deepEqual([...state.running], ["heat", "chop"], "downstream work counts toward priority");
   for (const id of ["saute", "use_water", "lift"]) {
-    assert.equal(advance(plan, state, { type: "start", id }), state);
-    assert.equal(advance(plan, state, { type: "finish", id }), state);
+    assert.equal(finishTask(plan, state, id), state);
   }
   assert.equal(
     currentAction(plan, state).id,
     "chop",
     "the two higher-priority actions are blocked",
   );
-  state = advance(plan, state, { type: "start", id: "chop" });
-  state = advance(plan, state, { type: "finish", id: "chop" });
+  state = finishTask(plan, state, "chop");
   assert.equal(currentAction(plan, state), undefined);
-  state = advance(plan, state, { type: "finish", id: "heat" });
+  state = finishTask(plan, state, "heat");
   assert.equal(
     currentAction(plan, state).id,
     "saute",

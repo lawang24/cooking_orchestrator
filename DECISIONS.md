@@ -164,3 +164,12 @@ stirring can be part of a passive instruction.
 
 Manual completion releases the task's equipment and makes its outputs available.
 Planned durations can guide task selection. Elapsed time never completes a task.
+
+## 012 — Start assigned tasks automatically
+
+Date: 2026-11-10
+
+After the cook chooses Start recipe, each assigned task starts immediately.
+This supersedes the manual start in decision 011. Mark done completes that
+task and triggers the next assignment. Undo restores the assignments that
+were running before that completion.

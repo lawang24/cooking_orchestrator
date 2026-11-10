@@ -360,6 +360,8 @@ summary:focus-visible {
 }
 #step-instruction {
   margin: 0;
+  /* The heading receives focus so the cook can read the current step. */
+  outline: none;
   font-size: clamp(2rem, 4vw, 3.6rem);
   font-weight: 500;
   line-height: 1.2;

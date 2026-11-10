@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { edgePath, makeLayout, name, timing, type Model } from "../model";
 
-import type { CookingEvent, CookingState } from "../scheduler";
+import type { CookingState } from "../scheduler";
 import type { ActionNode } from "../types";
 
 interface PlayerProps {
@@ -13,7 +13,7 @@ interface PlayerProps {
   canUndo: boolean;
   onUndo: () => void;
   onReturn: () => void;
-  onEvent: (event: CookingEvent) => void;
+  onFinish: (id: string) => void;
   onMap: () => void;
 }
 export function StepPlayer({
@@ -25,7 +25,7 @@ export function StepPlayer({
   canUndo,
   onUndo,
   onReturn,
-  onEvent,
+  onFinish,
   onMap,
 }: PlayerProps) {
   const { actions, actionLinks, steps } = model;
@@ -47,15 +47,13 @@ export function StepPlayer({
   let message = "This recipe needs more than one cook to continue.";
   if (done.size === steps.length) message = "Recipe complete";
   else if (running.size) message = "Waiting for a task in progress";
-  const started = node && running.has(node.id);
-  const label = started ? "Mark done" : "Start task";
   return (
     <main id="stepbar" aria-label="Current cooking action" hidden={hidden}>
       <div className="action-focus">
         <div aria-live="polite" aria-atomic="true">
           {node && (
             <p id="step-timing">
-              {preview ? "Preview · " : started ? "In progress · " : ""}
+              {preview ? "Preview · " : "In progress · "}
               {timing(node)}
             </p>
           )}
@@ -82,11 +80,10 @@ export function StepPlayer({
             disabled={!preview && !node}
             onClick={() => {
               if (preview) onReturn();
-              else if (node)
-                onEvent({ type: started ? "finish" : "start", id: node.id });
+              else if (node) onFinish(node.id);
             }}
           >
-            {preview ? "Back to cooking" : node ? label : "Start task"}
+            {preview ? "Back to cooking" : "Done"}
           </button>
         </nav>
         {passive.length > 0 && (
@@ -101,16 +98,17 @@ export function StepPlayer({
                   <div>
                     <strong>{name(action)}</strong>
                     <p>{action.instruction}</p>
+                    <small>{timing(action)}</small>
                   </div>
                   <button
                     type="button"
-                    aria-label={`Mark ${name(action)} done`}
+                    aria-label={`Done — ${name(action)}`}
                     onClick={() => {
                       onReturn();
-                      onEvent({ type: "finish", id: action.id });
+                      onFinish(action.id);
                     }}
                   >
-                    Mark done
+                    Done
                   </button>
                 </li>
               ))}

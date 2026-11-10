@@ -91,7 +91,7 @@ test('the opening screen lists every ingredient total before cooking begins', as
   await v.click(v.get('start-recipe'));
   assert.equal(v.get('stepbar').hidden, false);
   assert.equal(v.document.activeElement, v.get('step-instruction'));
-  assert.equal(v.get('next').textContent, 'Start task');
+  assert.equal(v.get('next').textContent, 'Done');
   assert.ok(v.get('previous').disabled);
 });
 
@@ -220,31 +220,33 @@ test('graph panning and wheel zoom preserve selection and suppress drag clicks',
   assert.deepEqual(v.selected(), ['eggs']);
 });
 
-test('starting an active action keeps it assigned until a deliberate completion', async t => {
+test('one deliberate press completes the assigned task and undo restores it', async t => {
   const v = await cookingViewer();
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
   const first = v.instruction();
   assert.ok(v.get('previous').disabled);
   assert.equal(v.get('nodes').children.length, 0);
+  assert.match(v.get('step-timing').textContent, /^In progress/);
   await v.sendKey('keydown', 'ArrowRight');
   await v.sendKey('keydown', 'ArrowRight', v.document.body, {repeat:true});
   await v.sendKey('keyup', 'ArrowRight');
-  assert.equal(v.instruction(), first);
-  assert.equal(v.get('next').textContent, 'Mark done');
-  assert.match(v.get('map-count').textContent, /^0 /);
-  await v.key('ArrowRight');
   assert.notEqual(v.instruction(), first);
+  const heading = v.get('step-instruction');
+  assert.equal(v.document.activeElement, heading);
+  assert.equal(v.dom.window.getComputedStyle(heading).outline, 'none');
+  assert.match(v.get('map-count').textContent, /^1 /);
+  assert.equal(v.get('next').textContent, 'Done');
   await v.key('ArrowLeft');
   assert.equal(v.instruction(), first);
-  assert.equal(v.get('next').textContent, 'Mark done');
-  await v.key('ArrowLeft');
+  assert.match(v.get('map-count').textContent, /^0 /);
   assert.ok(v.get('previous').disabled);
-  assert.equal(v.get('next').textContent, 'Start task');
+  assert.equal(v.get('next').textContent, 'Done');
 });
 
 test('graph inspection, zoom, recipe details and Escape preserve the current action', async t => {
   const v = await cookingViewer();
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, [], 'No script or hydration errors'); });
+  const first = v.instruction();
   await v.click(v.get('next'));
   const second = v.instruction();
   await v.toggle();
@@ -270,7 +272,7 @@ test('graph inspection, zoom, recipe details and Escape preserve the current act
   assert.equal(v.get('overview').hidden, true);
   assert.equal(v.instruction(), second);
   await v.click(v.get('previous'));
-  assert.equal(v.instruction(), second);
+  assert.equal(v.instruction(), first);
 });
 
 test('timing shows only the scheduled duration, provenance and attention', async t => {
@@ -332,7 +334,7 @@ test('layout and ordering visibility do not change action prerequisites', async 
   assert.ok(steps.indexOf('sear_beef') < steps.indexOf('sear_onions'));
   await v.toggle();
   await v.key('ArrowRight');
-  assert.equal(v.get('next').textContent, 'Mark done');
+  assert.equal(v.get('next').textContent, 'Done');
 });
 
 test('minimap shows only actions, connects producers to consumers, and tracks completion', async t => {
@@ -349,7 +351,6 @@ test('minimap shows only actions, connects producers to consumers, and tracks co
   assert.deepEqual(doneIds(), []);
   const ring = () => ['cx','cy'].map(attr => v.get('map-current').getAttribute(attr));
   const start = ring();
-  await v.click(v.get('next'));
   await v.click(v.get('next'));
   const firstBranch = [first, ...graph.edges.filter(e => e.to === first).map(e => e.from),
     ...graph.edges.filter(e => e.from === first).map(e => e.to)].sort();
@@ -390,15 +391,15 @@ test('marinating overlaps prep and searing waits for manual confirmation', async
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
   const steps = JSON.parse(v.get('step-data').textContent);
   const completed = () => [...v.get('map-nodes').querySelectorAll('.done')].map(n => n.dataset.id);
-  const marinade = () => v.document.querySelector('button[aria-label="Mark Marinate beef done"]');
-  for (let i = 0; i < 2 * steps.length && !v.get('next').disabled; i++) {
+  const marinade = () => v.document.querySelector('button[aria-label="Done — Marinate beef"]');
+  for (let i = 0; i < steps.length && !v.get('next').disabled; i++) {
     await v.click(v.get('next'));
     if (marinade() && /Peel onions|Combine the sauce/.test(v.instruction())) break;
   }
   assert.ok(marinade(), 'Marinade is running during prep');
   assert.match(v.instruction(), /Peel onions|Combine the sauce/);
   assert.ok(!completed().includes('marinate_beef'));
-  for (let i = 0; i < 2 * steps.length && !v.get('next').disabled; i++) await v.click(v.get('next'));
+  for (let i = 0; i < steps.length && !v.get('next').disabled; i++) await v.click(v.get('next'));
   assert.match(v.instruction(), /Waiting/);
   for (const id of ['prep_onions', 'mix_sauce']) assert.ok(completed().includes(id));
   assert.ok(!completed().includes('sear_beef'));
@@ -408,7 +409,7 @@ test('marinating overlaps prep and searing waits for manual confirmation', async
   assert.ok(marinade());
   assert.match(v.instruction(), /Waiting/);
   await v.click(marinade());
-  for (let i = 0; i < 2 * steps.length && !v.get('next').disabled; i++) await v.click(v.get('next'));
+  for (let i = 0; i < steps.length && !v.get('next').disabled; i++) await v.click(v.get('next'));
   assert.equal(v.instruction(), 'Recipe complete');
   assert.equal(completed().length, steps.length);
   await v.click(v.get('map-button'));

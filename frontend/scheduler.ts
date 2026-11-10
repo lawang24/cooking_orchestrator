@@ -1,4 +1,4 @@
-// Live, single-cook scheduling. Only a cook's start/finish events change state.
+// Live, single-cook scheduling. Assignments start immediately. Only the cook can complete a task.
 import type { ActionNode, Edge } from "./types";
 
 export function createSchedule(actions: ActionNode[], links: Edge[]) {
@@ -38,38 +38,37 @@ export const initialCookingState: CookingState = {
 };
 
 export function currentAction(schedule: Schedule, state: CookingState) {
-  const occupied = new Set<string>();
-  for (const action of schedule.priority) {
-    if (!state.running.has(action.id)) continue;
-    if (action.attention === "active") return action;
-    for (const tool of action.equipment) occupied.add(tool);
-  }
   return schedule.priority.find(
-    (action) =>
-      action.cooksRequired <= 1 &&
-      !state.running.has(action.id) &&
-      !state.done.has(action.id) &&
-      schedule.parents.get(action.id)!.every((id) => state.done.has(id)) &&
-      action.equipment.every((tool) => !occupied.has(tool)),
+    (action) => action.attention === "active" && state.running.has(action.id),
   );
 }
 
-export type CookingEvent = { type: "start" | "finish"; id: string };
-export function advance(
-  schedule: Schedule,
-  state: CookingState,
-  event: CookingEvent,
-): CookingState {
-  if (event.type === "start") {
-    if (
-      state.running.has(event.id) ||
-      currentAction(schedule, state)?.id !== event.id
-    )
-      return state;
-    return { ...state, running: new Set(state.running).add(event.id) };
-  }
-  if (!state.running.has(event.id)) return state;
+export function startAssignedTasks(schedule: Schedule, state: CookingState): CookingState {
+  if (currentAction(schedule, state)) return state;
   const running = new Set(state.running);
-  running.delete(event.id);
-  return { running, done: new Set(state.done).add(event.id) };
+  const occupied = new Set(
+    schedule.priority
+      .filter((action) => running.has(action.id))
+      .flatMap((action) => action.equipment),
+  );
+  for (const action of schedule.priority) {
+    if (
+      action.cooksRequired > 1 ||
+      running.has(action.id) ||
+      state.done.has(action.id) ||
+      !schedule.parents.get(action.id)!.every((id) => state.done.has(id)) ||
+      action.equipment.some((tool) => occupied.has(tool))
+    ) continue;
+    running.add(action.id);
+    if (action.attention === "active") break;
+    for (const tool of action.equipment) occupied.add(tool);
+  }
+  return { ...state, running };
+}
+
+export function finishTask(schedule: Schedule, state: CookingState, id: string): CookingState {
+  if (!state.running.has(id)) return state;
+  const running = new Set(state.running);
+  running.delete(id);
+  return startAssignedTasks(schedule, { running, done: new Set(state.done).add(id) });
 }
