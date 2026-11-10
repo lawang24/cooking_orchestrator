@@ -115,11 +115,13 @@ See [AGENTS.md](AGENTS.md) for the repeatable workflow for converting recipe sou
 
 ## Visualize a recipe
 
-One-time setup, from this project directory, using Python 3.11 or newer:
+One-time setup, from this project directory, using Python 3.11+ and Node.js 22.12+:
 
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-validation.txt
+npm ci
+npm run build:viewer
 ```
 
 Generate and open the beef-onion graph:
@@ -146,17 +148,37 @@ To choose an output path:
 
 The output is self-contained and works offline. Open it directly in a browser; no server, account, or network connection is needed. Existing output HTML is replaced on each run. Invalid graphs fail validation before writing output.
 
+The UI is authored in React and TypeScript. Python sends the validated graph and
+action order to a Node build-time renderer, which prerenders the React components
+to HTML and embeds the browser bundle, CSS, and data. Before JavaScript runs, the
+page contains a visible recipe document with ingredients, every instruction,
+timings, notes, and finished dishes. React hydrates that HTML and opens the
+interactive step player; the complete document remains available under
+**Overview → Recipes**. No browser requests to Python or Node are needed.
+
+To regenerate **all** saved recipes after frontend or recipe changes:
+
+```sh
+npm run build
+```
+
+This checks TypeScript, builds the frontend, and writes each recipe's HTML to
+`visualizations/`, then exits. Upload those HTML files to any static host or
+share them individually. Node and Python are generation dependencies only.
+After editing frontend code, rerun `npm run build:viewer` before using the
+single-recipe Python command. Generated files are ignored by Git.
+
 ### Viewer controls
 
-For an HTTP preview, run `npm run dev` after Python setup, then open
+For an HTTP preview, run `npm run dev` after setup, then open
 `http://127.0.0.1:8766/gyudon.html` (or `beef-onion-stir-fry.html`). The server
-regenerates every recipe on startup and serves only the `visualizations/`
+builds the React viewer and regenerates every recipe on startup, then serves only the `visualizations/`
 directory, bound to localhost. Restart after source changes, then refresh the
 page. Stop with Ctrl+C; choose another port with `npm run dev -- --port 8767`.
 
 - The viewer opens with one centered cooking instruction, its planned duration, and any equipment it needs. Choose **Next** or press **Right** to complete the current action and advance. Choose **Finish step** to complete the last action. **Previous** or **Left** undoes progress back to the action you revisit. Hold either arrow key to keep stepping in that direction. After finishing the last action, **Undo finish** reopens it.
 - The bottom-right minimap shows one dot per action. Links run from earlier actions to the actions that use their food or require them to finish first. A ring marks the current action, and green dots mark completed actions. Click the minimap to explore the full graph, including ingredients and food states.
-- Open **Overview** in the top-right corner. **Progress** shows your position in the ordered action list. Select an action to jump to it. **Recipes** lists the recipes in this viewer, their serving counts, and notes.
+- Open **Overview** in the top-right corner. **Progress** shows your position in the ordered action list. Select an action to jump to it. **Recipes** contains the complete readable recipe document: serving counts, ingredients, instructions, notes, and finished dishes.
 - **Whole graph** shows ingredients, actions, and food states. Solid arrows show food flow and dashed arrows show required ordering. Select a node to inspect it, or follow a linked node in its details. Scroll to zoom, drag to pan, or use the zoom, layout, and fit controls. **Show ordering** toggles the dashed arrows and retains their layout constraints.
 - Choose **Back to step** to resume the current instruction after inspecting the overview. Escape also returns to the step. On a selected graph node, Escape first clears its selection.
 - The action order follows food dependencies and explicit prerequisites. Source order breaks ties between independent actions. Completion lasts until the page reloads. Jumping ahead in the progress list only moves the current position. Jumping back rewinds completion to that action. Completing an action after a jump also marks its prerequisites done, while independent branches keep their own status.
@@ -176,9 +198,11 @@ Run these commands from the repository root with the virtual environment set up.
 
 For a uv-managed environment, install the same dependencies with
 `uv pip install --python .venv/bin/python -r requirements-dev.txt`.
-Run the compiler and Python tests with:
+Build the viewer first, then run the compiler and Python tests:
 
 ```sh
+npm ci
+npm run build:viewer
 .venv/bin/python scripts/compile_recipe.py recipes/beef-onion-stir-fry.recipe.json
 .venv/bin/python -m unittest discover -s tests -v
 ```
@@ -195,14 +219,18 @@ single-use portions, explicit measurement, conserved measurement quantities, cyc
 and contribution to a finished output. The compiler preserves
 recipe metadata, duration provenance, and explicit action ordering.
 
-Keyboard and selection behavior also have isolated DOM tests (Node.js 18+):
+Static rendering, hydration, keyboard and selection behavior have isolated DOM tests:
 
 ```sh
 npm ci
 npm run test:viewer
 ```
 
-These tests generate fresh viewers and exercise their actual scripts without opening a browser. They check navigation, one-action selection, endpoint limits, dependency ordering, and switching modes; they do not verify pixel layout. The Node dependencies are only needed for development tests, not for generating or opening a viewer.
+`test:viewer` checks TypeScript and rebuilds the frontend before testing. The tests
+generate fresh viewers and exercise their actual scripts without opening a
+browser. They check readable HTML with scripts disabled, hydration without
+mismatches, escaped recipe text, navigation, selection, endpoint limits,
+dependency ordering, and switching modes. They do not verify pixel layout.
 
 ## Implementation
 
@@ -212,8 +240,15 @@ These tests generate fresh viewers and exercise their actual scripts without ope
 - `scripts/compile_recipe.py`: validates input and constructs the dependency graph.
 - `scripts/merge_recipe_graphs.py`: combines compiled recipe graphs and merges measurements matching a conservative template.
 - `scripts/validate_recipe_graph.py`: validates internal graph semantics.
-- `scripts/visualize_recipe_graph.py`: compiles recipe JSON and packages the HTML viewer.
-- `scripts/recipe_graph_viewer.html`: shared viewer template, including pan, zoom, and node inspection.
-- `scripts/vendor/dagre-1.1.5.min.js`: bundled Dagre layout engine, version 1.1.5, obtained from `https://cdn.jsdelivr.net/npm/@dagrejs/dagre@1.1.5/dist/dagre.min.js`. Its MIT license is in `scripts/vendor/dagre-LICENSE` and included in generated HTML.
+- `scripts/visualize_recipe_graph.py`: compiles and validates recipes, computes action order, and invokes the React static renderer over stdin/stdout.
+- `frontend/App.tsx`: React application state and navigation.
+- `frontend/components/`: step player, graph view, node details, and semantic recipe document.
+- `frontend/model.ts`: graph layout and dependency-derived progress, shared by the build and browser.
+- `frontend/types.ts`: TypeScript shape of the validated JSON boundary; keep it aligned with `scripts/recipe_types.py` when changing the compiled graph contract.
+- `frontend/render.tsx`: build-time React prerendering and self-contained HTML packaging.
+- `frontend/client.tsx`: browser hydration entry point.
+- `frontend/build.mjs`: Vite builds for the inline browser bundle and Node renderer; outputs go to ignored `frontend/dist/`.
+- `frontend/styles.css`: shared viewer styles.
+- `scripts/vendor/dagre-LICENSE`: retained MIT license for Dagre 1.1.5. Dagre is now an npm dependency; its license and the bundled dependencies' licenses are included in generated HTML.
 
 The renderer uses only the input graph; no recipe-specific nodes or layout positions are hardcoded. Recipe text is rendered as text, not executable markup.

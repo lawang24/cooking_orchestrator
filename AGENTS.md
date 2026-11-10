@@ -68,8 +68,12 @@ Run commands from the repository root. Reuse `.venv` when present. If setup is n
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-validation.txt
+npm ci
+npm run build:viewer
 ```
 
+Viewer generation also requires Node.js 22.12+. Rebuild with `npm run build:viewer`
+after frontend edits. The exported HTML needs no Node/Python runtime or server.
 Replace `<recipe-id>` below with the actual slug:
 
 ```sh
@@ -91,7 +95,14 @@ For changes to the schema, compiler, validator, or renderer, run the existing te
 
 For viewer changes, also run `npm ci` and `npm run test:viewer` for the DOM navigation tests.
 
-Keep generated visualizations, screenshots, `.venv`, and caches out of version control according to `.gitignore`. Do not edit generated HTML as the source of a fix; change the JSON or shared template and regenerate. Preserve the bundled layout library's license.
+The reusable viewer is authored in `frontend/` using React and TypeScript.
+`frontend/render.tsx` prerenders semantic recipe HTML and bundles the client code;
+`frontend/client.tsx` hydrates it. Keep all ingredients and instructions readable
+without JavaScript, retain offline exports, and verify hydration without errors.
+`npm run build` typechecks, rebuilds the UI, and regenerates every saved recipe.
+Build the viewer before running Python tests that exercise HTML generation.
+
+Keep generated visualizations, `frontend/dist/`, screenshots, `.venv`, and caches out of version control according to `.gitignore`. Do not edit generated HTML as the source of a fix; change the JSON or shared React components/styles and regenerate. Preserve the bundled layout library's license.
 
 ## Handoff
 

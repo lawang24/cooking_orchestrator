@@ -22,6 +22,7 @@ class PreviewHandler(SimpleHTTPRequestHandler):
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', type=int, default=8766)
+    parser.add_argument('--build-only', action='store_true', help='Generate static HTML and exit without serving')
     args = parser.parse_args()
     output = ROOT / 'visualizations'
     output.mkdir(exist_ok=True)
@@ -32,6 +33,10 @@ def main() -> None:
         page = graph['recipeId'] + '.html'
         (output / page).write_text(document, encoding='utf-8')
         pages.append(page)
+    if args.build_only:
+        for page in pages:
+            print(f'Created {output / page}')
+        return
     handler = partial(PreviewHandler, directory=str(output))
     with ThreadingHTTPServer(('127.0.0.1', args.port), handler) as server:
         for page in pages:

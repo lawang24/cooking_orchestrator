@@ -1,0 +1,525 @@
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f5f6f8, #15191e);
+  --panel: light-dark(#fff, #20262d);
+  --text: light-dark(#18232e, #ecf1f5);
+  --muted: light-dark(#566575, #a9bac9);
+  --line: light-dark(#c5ced7, #536375);
+  --edge: light-dark(#63778a, #9daebe);
+  --ingredient: light-dark(#e3f2ec, #173d33);
+  --action: light-dark(#e7edff, #263555);
+  --state: light-dark(#fff0d5, #493a20);
+  --focus: light-dark(#315fcb, #8cb6ff);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
+}
+header {
+  padding: 20px 24px 12px;
+}
+h1 {
+  font-size: 23px;
+  line-height: 1.25;
+  margin: 0 0 5px;
+}
+p {
+  margin: 0 0 12px;
+}
+.muted {
+  color: var(--muted);
+}
+.toolbar,
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.toolbar {
+  padding: 12px 24px;
+}
+.legend {
+  margin-top: 12px;
+  gap: 18px;
+  font-size: 13px;
+}
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.swatch {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line);
+}
+.ingredient {
+  background: var(--ingredient);
+  border-radius: 8px;
+}
+.action {
+  background: var(--action);
+}
+.food_state {
+  background: var(--state);
+  border-radius: 4px;
+}
+.line {
+  width: 24px;
+  border-top: 2px solid var(--edge);
+}
+.line.order {
+  border-top-style: dashed;
+}
+button,
+select {
+  font: inherit;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+button:focus-visible,
+select:focus-visible,
+.node:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.toolbar label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  border-top: 1px solid var(--line);
+  height: calc(100dvh - 205px);
+  min-height: 470px;
+}
+.canvas {
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+}
+.canvas svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+.canvas svg.dragging {
+  cursor: grabbing;
+}
+aside {
+  padding: 20px;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  overflow: auto;
+}
+h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+h3 {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 20px 0 6px;
+}
+ul {
+  padding-left: 18px;
+  margin: 0;
+}
+li {
+  margin: 4px 0;
+}
+a {
+  color: var(--focus);
+}
+.edge {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: 1.5;
+}
+.edge.order {
+  stroke-dasharray: 6 5;
+}
+.node {
+  cursor: pointer;
+}
+.node rect {
+  stroke: var(--line);
+  stroke-width: 1.2;
+}
+.node.ingredient-node rect {
+  fill: var(--ingredient);
+}
+.node.action-node rect {
+  fill: var(--action);
+}
+.node.food_state-node rect {
+  fill: var(--state);
+}
+.node.selected rect {
+  stroke: var(--focus);
+  stroke-width: 3;
+}
+.node text {
+  fill: var(--text);
+  pointer-events: none;
+  font-size: 14px;
+}
+.node .category {
+  font-size: 11px;
+  fill: var(--muted);
+  letter-spacing: 0.04em;
+}
+.node .meta {
+  font-size: 12px;
+  fill: var(--muted);
+}
+.dim {
+  opacity: 0.16;
+}
+.edge.related {
+  stroke: var(--focus);
+  stroke-width: 2.5;
+}
+#zoom {
+  min-width: 45px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.hint {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: var(--panel);
+  color: var(--muted);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+}
+.detail-button {
+  padding: 3px 6px;
+  font-size: 13px;
+  text-align: left;
+}
+.node-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+summary {
+  cursor: pointer;
+}
+.notes {
+  font-size: 13px;
+}
+[hidden] {
+  display: none !important;
+}
+:root {
+  --bg: light-dark(#faf8f2, #181e1b);
+  --panel: light-dark(#fffefa, #222a25);
+  --text: light-dark(#20342c, #f0f2e9);
+  --muted: light-dark(#56685d, #bdc8bc);
+  --line: light-dark(#d6d9cc, #505c54);
+  --accent: light-dark(#285741, #b9d8b7);
+  --on-accent: light-dark(#fff, #1b3022);
+}
+body {
+  min-height: 100dvh;
+  font-family: "DM Sans", system-ui, sans-serif;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button:not(:disabled):hover {
+  border-color: var(--accent);
+}
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+#overview-toggle {
+  position: fixed;
+  top: 18px;
+  right: clamp(16px, 3vw, 40px);
+  z-index: 1;
+  min-height: 44px;
+  border-radius: 24px;
+  padding: 8px 18px;
+}
+#stepbar {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  place-items: center;
+  padding: 16px clamp(16px, 3vw, 40px);
+}
+.action-focus {
+  grid-row: 2;
+}
+#map-button {
+  grid-row: 3;
+  place-self: end;
+  width: min(240px, 100%);
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-align: left;
+}
+.map-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.map-caption strong {
+  font-size: 13px;
+}
+.map-caption small {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+#minimap {
+  width: 100%;
+  height: 98px;
+  display: block;
+  margin-top: 6px;
+}
+.map-link {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.map-link.order {
+  stroke-dasharray: 4 3;
+}
+.map-node {
+  fill: var(--panel);
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+.map-node.done {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+.map-link.done {
+  stroke: var(--accent);
+}
+#map-current {
+  fill: none;
+  stroke: light-dark(#ae500e, #ffc078);
+  stroke-width: 3;
+}
+.node.done .category {
+  fill: var(--accent);
+  font-weight: 700;
+}
+.step-status {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 13px;
+}
+@media (max-height: 520px) {
+  #stepbar {
+    grid-template-rows: 56px auto 1fr;
+    row-gap: 12px;
+  }
+}
+@media (max-width: 600px) {
+  #map-button {
+    width: 190px;
+  }
+  #minimap {
+    height: 76px;
+  }
+}
+.action-focus {
+  width: min(100%, 700px);
+  text-align: center;
+  overflow-wrap: anywhere;
+  font-family: system-ui, sans-serif;
+}
+#step-instruction {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-weight: 500;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+#step-timing {
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+}
+#step-tools {
+  margin: 18px 0 0;
+  color: var(--muted);
+}
+.step-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 40px;
+}
+.step-controls button {
+  min-height: 46px;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-weight: 600;
+}
+#next {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+#overview {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+#overview header {
+  padding: 20px clamp(16px, 3vw, 40px);
+  border-bottom: 1px solid var(--line);
+  min-height: 80px;
+  padding-right: 150px;
+}
+#overview h1 {
+  font:
+    500 30px/1.3 Georgia,
+    serif;
+  margin: 0;
+}
+.panel-nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px clamp(16px, 3vw, 40px);
+}
+.panel-nav button {
+  min-height: 44px;
+  border-radius: 24px;
+  padding: 8px 18px;
+}
+.panel-nav button[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.info-pane {
+  margin: 0 auto;
+  padding: 24px;
+  width: min(100%, 720px);
+  overflow-wrap: anywhere;
+}
+.info-pane h2 {
+  font:
+    500 28px/1.3 Georgia,
+    serif;
+}
+#progress-list {
+  padding: 0;
+  list-style: none;
+}
+#progress-list button {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  text-align: left;
+  padding: 10px 14px;
+  min-height: 44px;
+}
+#progress-list button[aria-current="step"] {
+  border-color: var(--accent);
+  font-weight: 650;
+  background: var(--ingredient);
+}
+.step-number {
+  min-width: 2ch;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+#graph-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.graph-summary {
+  padding: 0 24px;
+}
+.workspace {
+  flex: 1;
+  height: auto;
+  min-height: 440px;
+}
+.workspace aside {
+  max-height: calc(100dvh - 180px);
+}
+@media (max-width: 760px) {
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .canvas {
+    height: 55dvh;
+    min-height: 320px;
+  }
+  .workspace aside {
+    max-height: none;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .legend {
+    gap: 10px;
+  }
+  .toolbar,
+  .graph-summary {
+    padding-inline: 16px;
+  }
+  .info-pane {
+    padding: 16px;
+  }
+  .step-controls {
+    margin-top: 28px;
+  }
+}
+
+.recipe-document {
+  padding-bottom: 64px;
+}
+.recipe-document h1 {
+  font:
+    500 32px/1.3 Georgia,
+    serif;
+  margin-bottom: 20px;
+}
+.recipe-document h2 {
+  margin-top: 32px;
+}
+.recipe-document .instruction-list li {
+  margin-bottom: 24px;
+}
+.recipe-document .instruction-list p {
+  margin-bottom: 6px;
+}

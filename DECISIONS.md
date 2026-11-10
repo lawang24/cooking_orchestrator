@@ -132,3 +132,22 @@ Supersedes the separate `duration_text` field in decision 008. Steps and compile
 actions retain `scheduled_duration_seconds` and `scheduled_duration_source`.
 The viewer uses those fields for timing labels. Cooking instructions carry any
 source time ranges and observable completion cues.
+
+## 010 — Generate the viewer with React and static HTML
+
+Date: 2026-11-09
+
+Author the viewer in React and TypeScript, with Vite building browser and
+build-time rendering entry points. Keep compilation, validation, meal merging,
+and dependency-respecting action order in Python. Pass the compiled graph and
+ordered action IDs to the React renderer as JSON.
+
+Prerender the complete semantic recipe document so ingredients, all instructions,
+timings, notes, and outputs are readable without running JavaScript. Hydrate in
+the browser to enable the existing step player, progress tracking, and graph
+controls. Keep the recipe document accessible in the Recipes overview.
+
+Preserve self-contained offline HTML exports and the Python visualization CLI.
+Node is needed during generation, but the exported site needs no application
+server or backend. Build frontend assets before invoking the Python renderer;
+`npm run build` rebuilds the UI and generates all saved recipe pages.

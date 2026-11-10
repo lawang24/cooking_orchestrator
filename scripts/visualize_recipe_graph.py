@@ -7,6 +7,7 @@ import heapq
 import json
 from pathlib import Path
 import sys
+import subprocess
 import webbrowser
 
 from validate_recipe_graph import validate_graph
@@ -53,26 +54,28 @@ def action_order(graph: CompiledGraph) -> list[str]:
     return ordered
 
 
-def embedded_json(value: CompiledGraph | list[str]) -> str:
-    # Data is embedded in a non-executable script, but HTML still recognizes
-    # closing script tags there. Escape angle brackets before embedding.
-    return json.dumps(value, ensure_ascii=True).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
-
-
 def render_graph(graph: CompiledGraph) -> str:
+    # Reject invalid graph data before handing it to the React static renderer.
     errors = validate_graph(graph)
     if errors:
         raise ValueError('Invalid recipe graph:\n' + '\n'.join(errors))
-    template = (HERE / 'recipe_graph_viewer.html').read_text(encoding='utf-8')
-    library = (HERE / 'vendor/dagre-1.1.5.min.js').read_text(encoding='utf-8')
-    license_text = (HERE / 'vendor/dagre-LICENSE').read_text(encoding='utf-8')
-    library = library.replace('</script', '<\\/script')
-    # Split placeholders once so recipe strings resembling placeholders remain data.
-    before_library, rest = template.split('/* DAGRE_LIBRARY */', 1)
-    before_data, after_data = rest.split('RECIPE_GRAPH_DATA', 1)
-    before_steps, after_steps = after_data.split('RECIPE_STEP_DATA', 1)
-    return (before_library + library + '\n/*\n' + license_text + '\n*/' + before_data + embedded_json(graph)
-            + before_steps + embedded_json(action_order(graph)) + after_steps)
+    renderer = HERE.parent / 'frontend/dist/render.mjs'
+    if not renderer.is_file():
+        raise ValueError('Viewer build missing. Run npm ci && npm run build:viewer first.')
+    # Python owns compilation and action ordering. Node renders React at build
+    # time and bundles the UI, styles, escaped JSON, and Dagre license into HTML.
+    # No application server is needed to open or host the resulting snapshot.
+    try:
+        result = subprocess.run(
+            ['node', str(renderer)],
+            input=json.dumps({'graph': graph, 'steps': action_order(graph)}),
+            capture_output=True, text=True, encoding='utf-8', check=False,
+        )
+    except FileNotFoundError as error:
+        raise ValueError('Node.js 22.12+ is required to generate the React viewer.') from error
+    if result.returncode:
+        raise ValueError('React static rendering failed:\n' + result.stderr.strip())
+    return result.stdout
 
 
 def main() -> int:

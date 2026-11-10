@@ -41,8 +41,11 @@ class ViewerTests(unittest.TestCase):
 
     def test_embeds_all_data_and_offline_scripts(self):
         parser = ScriptParser()
-        parser.feed(render_graph(self.graph))
-        self.assertEqual(len(parser.scripts), 4)
+        document = render_graph(self.graph)
+        parser.feed(document)
+        self.assertIn((ROOT / 'scripts/vendor/dagre-LICENSE').read_text().strip(), document)
+        self.assertIn('Meta Platforms', document)
+        self.assertEqual(len(parser.scripts), 3)
         self.assertFalse(any('src' in script['attrs'] for script in parser.scripts))
         data = next(s for s in parser.scripts if s['attrs'].get('id') == 'recipe-data')
         self.assertEqual(json.loads(data['data']), self.graph)
@@ -54,7 +57,7 @@ class ViewerTests(unittest.TestCase):
         graph['name'] = '</script><script>alert(1)</script> & RECIPE_GRAPH_DATA'
         parser = ScriptParser()
         parser.feed(render_graph(graph))
-        self.assertEqual(len(parser.scripts), 4)
+        self.assertEqual(len(parser.scripts), 3)
         data = next(s for s in parser.scripts if s['attrs'].get('id') == 'recipe-data')
         self.assertEqual(json.loads(data['data'])['name'], graph['name'])
 
@@ -69,7 +72,7 @@ class ViewerTests(unittest.TestCase):
                     edge[endpoint] = action_id
         parser = ScriptParser()
         parser.feed(render_graph(graph))
-        self.assertEqual(len(parser.scripts), 4)
+        self.assertEqual(len(parser.scripts), 3)
         steps = next(s for s in parser.scripts if s['attrs'].get('id') == 'step-data')
         self.assertIn(action_id, json.loads(steps['data']))
 
