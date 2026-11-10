@@ -2,10 +2,14 @@ import { labels, meta, name, time, type Model } from "../model";
 
 export function NodeDetails({
   model,
+  actionsOnly,
+  done,
   selected,
   onSelect,
 }: {
   model: Model;
+  actionsOnly: boolean;
+  done: ReadonlySet<string>;
   selected: string | null;
   onSelect: (id: string) => void;
 }) {
@@ -34,6 +38,7 @@ export function NodeDetails({
       </>
     );
   const node = selected ? model.byId.get(selected)! : null;
+  const connections = actionsOnly ? model.actionLinks : model.connections;
   return (
     <aside aria-label="Node details">
       <div id="details" aria-live="polite">
@@ -50,7 +55,7 @@ export function NodeDetails({
           </>
         ) : (
           <>
-            <p className="muted">{labels[node.type]}</p>
+            <p className="muted">{labels[node.type]}{done.has(node.id) ? " · ✓ Done" : ""}</p>
             <h2>{name(node)}</h2>
             <p>{meta(node, model.graph)}</p>
             {node.type === "action" && (
@@ -74,15 +79,15 @@ export function NodeDetails({
               </>
             )}
             {links(
-              "Food inputs",
-              model.graph.edges
-                .filter((edge) => edge.to === selected)
+              actionsOnly ? "Actions supplying food" : "Food inputs",
+              connections
+                .filter((edge) => edge.kind === "food" && edge.to === selected)
                 .map((edge) => edge.from),
             )}
             {links(
-              "Food outputs / used by",
-              model.graph.edges
-                .filter((edge) => edge.from === selected)
+              actionsOnly ? "Actions using this output" : "Food outputs / used by",
+              connections
+                .filter((edge) => edge.kind === "food" && edge.from === selected)
                 .map((edge) => edge.to),
             )}
             {links("Must follow", node.type === "action" ? node.dependsOn : [])}

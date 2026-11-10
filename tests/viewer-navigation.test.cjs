@@ -67,9 +67,13 @@ async function viewer(recipe = 'gyudon', html = generate(recipe)) {
   const click = async element => { element.click(); await settle(); };
   const dispatch = async (element, event) => { element.dispatchEvent(event); await settle(); };
   const panel = id => click(document.querySelector(`.panel-nav button[aria-controls="${id}-panel"]`));
+  const graphView = async value => {
+    get('graph-view').value = value;
+    await dispatch(get('graph-view'), new dom.window.Event('change', {bubbles:true}));
+  };
   const toggle = () => click(get('overview-toggle'));
   const instruction = () => get('step-instruction').textContent;
-  return {dom, document, get, key, sendKey, selected, panel, toggle, instruction, click, dispatch, errors};
+  return {dom, document, get, key, sendKey, selected, panel, graphView, toggle, instruction, click, dispatch, errors};
 }
 
 async function cookingViewer(...args) {
@@ -180,6 +184,8 @@ test('merged meal exports hydrate with component servings and namespaced actions
     graph.recipes.map(recipe => `${recipe.name} · ${recipe.servings} servings`));
   assert.deepEqual([...v.get('recipe-instructions').children].map(item => item.dataset.actionId), steps);
   await v.panel('graph');
+  assert.equal(v.get('nodes').children.length, steps.length);
+  await v.graphView('whole');
   assert.equal(v.get('nodes').children.length, graph.nodes.length);
   assert.match(v.get('summary').textContent, /2 recipes/);
 });
@@ -188,6 +194,7 @@ test('graph panning and wheel zoom preserve selection and suppress drag clicks',
   const v = await cookingViewer();
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
   await v.click(v.get('map-button'));
+  await v.graphView('whole');
   const svg = v.get('diagram');
   const captured = new Set();
   svg.setPointerCapture = id => captured.add(id);
@@ -253,6 +260,7 @@ test('graph inspection, zoom, recipe details and Escape preserve the current act
   await v.panel('graph');
   assert.equal(v.get('graph-panel').hidden, false);
   assert.equal(v.get('progress-panel').hidden, true);
+  await v.graphView('whole');
   await v.dispatch(v.get('nodes').querySelector('[data-id="eggs"]'), new v.dom.window.MouseEvent('click', {bubbles:true}));
   assert.deepEqual(v.selected(), ['eggs']);
   assert.match(v.get('details').textContent, /Eggs/);
@@ -366,11 +374,41 @@ test('minimap shows only actions, connects producers to consumers, and tracks co
   await v.click(v.get('map-button'));
   assert.equal(v.get('graph-panel').hidden, false);
   assert.equal(v.get('overview').hidden, false);
+  assert.equal(v.get('graph-view').value, 'actions');
+  assert.deepEqual([...v.get('nodes').children].map(n => n.dataset.id), steps);
+  assert.deepEqual([...v.get('edges').children].map(e => [e.dataset.from, e.dataset.to]),
+    links.map(e => [e.dataset.from, e.dataset.to]));
+  assert.deepEqual([...v.get('nodes').querySelectorAll('.done')].map(n => n.dataset.id), doneIds());
+  await v.graphView('whole');
   assert.deepEqual([...v.get('nodes').querySelectorAll('.done')].map(n => n.dataset.id).sort(), firstBranch);
   const selected = v.get('nodes').querySelector(`[data-id="${first}"]`);
   assert.match(selected.textContent, /✓ DONE/);
   await v.panel('progress');
   assert.match(v.get('progress-list').children[steps.indexOf(first)].textContent, /✓ Done/);
+  await v.toggle();
+  await v.click(v.get('previous'));
+  await v.click(v.get('map-button'));
+  assert.equal(v.get('graph-view').value, 'whole');
+  assert.equal(v.get('nodes').querySelectorAll('.done').length, 0);
+  await v.graphView('actions');
+  assert.equal(v.get('nodes').querySelectorAll('.done').length, 0);
+});
+
+test('graph details follow visible nodes when switching views', async t => {
+  const v = await cookingViewer();
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  await v.click(v.get('map-button'));
+  const jump = label => v.click([...v.get('details').querySelectorAll('button')].find(b => b.textContent === label));
+  await jump('Measure onion');
+  await jump('Slice onions');
+  assert.deepEqual(v.selected(), ['slice_onions']);
+  await v.graphView('whole');
+  assert.deepEqual(v.selected(), ['slice_onions']);
+  await v.click(v.get('details').querySelector('.detail-button'));
+  assert.ok(v.document.querySelector('.food_state-node.selected'));
+  await v.graphView('actions');
+  assert.deepEqual(v.selected(), []);
+  assert.match(v.get('details').textContent, /Jump to an action/);
 });
 
 test('previewing a blocked action cannot complete its prerequisites', async t => {
@@ -413,6 +451,7 @@ test('marinating overlaps prep and searing waits for manual confirmation', async
   assert.equal(v.instruction(), 'Recipe complete');
   assert.equal(completed().length, steps.length);
   await v.click(v.get('map-button'));
+  await v.graphView('whole');
   assert.ok(v.get('nodes').querySelector('[data-id="finished_stir_fry"]').classList.contains('done'));
 });
 
@@ -421,6 +460,7 @@ test('both graphs flow down from their starting nodes to their final outputs', a
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, [], 'No script or hydration errors'); });
   const graph = JSON.parse(v.get('recipe-data').textContent);
   await v.click(v.get('map-button'));
+  await v.graphView('whole');
   function assertRanks(y) {
     const positions = graph.nodes.map(n => y(n.id));
     const top = Math.min(...positions), bottom = Math.max(...positions);

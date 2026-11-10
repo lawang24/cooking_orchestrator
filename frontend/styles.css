@@ -333,6 +333,15 @@ summary:focus-visible {
   fill: var(--accent);
   font-weight: 700;
 }
+.done-action,
+.node.action-node.done rect {
+  background: var(--ingredient);
+  fill: var(--ingredient);
+  border-color: var(--accent);
+}
+.node.action-node.done:not(.selected) rect {
+  stroke: var(--accent);
+}
 .step-status {
   margin-left: auto;
   color: var(--accent);

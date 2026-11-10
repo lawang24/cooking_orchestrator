@@ -27,6 +27,7 @@ export function GraphView({
   active: boolean;
 }) {
   const [direction, setDirection] = useState("TB");
+  const [actionsOnly, setActionsOnly] = useState(true);
   const [orders, setOrders] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -41,7 +42,10 @@ export function GraphView({
     ty: number;
   } | null>(null);
   const moved = useRef(false);
-  const { graph, connections } = model;
+  const { graph } = model;
+  const nodes = actionsOnly ? model.actions : graph.nodes;
+  const connections = actionsOnly ? model.actionLinks : model.connections;
+  const foodLinks = connections.filter((edge) => edge.kind === "food").length;
   useEffect(() => {
     if (active) setLoaded(true);
   }, [active]);
@@ -49,7 +53,7 @@ export function GraphView({
     () =>
       loaded
         ? makeLayout(
-            graph.nodes,
+            nodes,
             connections,
             {
               rankdir: direction,
@@ -64,7 +68,7 @@ export function GraphView({
             }),
           )
         : null,
-    [model, direction, loaded],
+    [nodes, connections, direction, loaded],
   );
 
   const fit = useCallback(() => {
@@ -155,21 +159,25 @@ export function GraphView({
           {graph.recipes
             ? `${graph.recipes.length} recipes`
             : `${graph.servings} servings`}{" "}
-          · {graph.nodes.length} nodes · {graph.edges.length} food-flow links ·{" "}
-          {connections.length - graph.edges.length} ordering links
+          · {nodes.length} {actionsOnly ? "actions" : "nodes"} · {foodLinks} food-flow links ·{" "}
+          {connections.length - foodLinks} ordering links
         </div>
         <div className="legend" aria-label="Graph legend">
-          <span className="key">
+          {!actionsOnly && <span className="key">
             <span className="swatch ingredient" />
             Ingredient
-          </span>
+          </span>}
           <span className="key">
             <span className="swatch action" />
             Action
           </span>
-          <span className="key">
+          {!actionsOnly && <span className="key">
             <span className="swatch food_state" />
             Food state
+          </span>}
+          <span className="key">
+            <span className="swatch done-action" />
+            Completed action
           </span>
           <span className="key">
             <span className="line" />
@@ -182,6 +190,22 @@ export function GraphView({
         </div>
       </div>
       <div className="toolbar" aria-label="Diagram controls">
+        <label>
+          View
+          <select
+            id="graph-view"
+            value={actionsOnly ? "actions" : "whole"}
+            onChange={(event) => {
+              const onlyActions = event.target.value === "actions";
+              if (onlyActions && selected && model.byId.get(selected)?.type !== "action")
+                setSelected(null);
+              setActionsOnly(onlyActions);
+            }}
+          >
+            <option value="actions">Actions only</option>
+            <option value="whole">Whole graph</option>
+          </select>
+        </label>
         <button id="fit" type="button" onClick={fit}>
           Fit graph
         </button>
@@ -309,6 +333,8 @@ export function GraphView({
                         d={edgePath(layout, edge, i)}
                         markerEnd="url(#arrow)"
                         data-index={i}
+                        data-from={edge.from}
+                        data-to={edge.to}
                         className={`edge ${edge.kind}${selected && !related ? " dim" : ""}${related ? " related" : ""}`}
                         style={{
                           display:
@@ -322,7 +348,7 @@ export function GraphView({
               </g>
               <g id="nodes">
                 {layout &&
-                  graph.nodes.map((node) => {
+                  nodes.map((node) => {
                     const point = layout.node(node.id),
                       completed = done.has(node.id);
                     return (
@@ -380,6 +406,8 @@ export function GraphView({
         </div>
         <NodeDetails
           model={model}
+          actionsOnly={actionsOnly}
+          done={done}
           selected={selected}
           onSelect={(id) => select(id, true)}
         />
