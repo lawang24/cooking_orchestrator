@@ -173,3 +173,26 @@ After the cook chooses Start recipe, each assigned task starts immediately.
 This supersedes the manual start in decision 011. Mark done completes that
 task and triggers the next assignment. Undo restores the assignments that
 were running before that completion.
+
+## 013 — Import agent-authored recipes with browser Python
+
+Date: 2026-11-10
+
+Users ask their own agent to convert a recipe into the existing recipe JSON
+format. Provide copyable AGENTS.md instructions together with referenced schema,
+guide, examples, and supporting files so the agent can work outside this checkout.
+The app accepts recipe JSON and runs the existing Python compilation and
+validation in the browser using Pyodide. Recipe creation requires no application
+server or model service. React displays the resulting recipe and graph.
+
+Keep added recipes in memory for now; refreshing may erase them. A database is
+planned later. Navigation between the library and cooking views must preserve
+that in-memory library during the current page session.
+
+## 014 — Run recipe creation on the browser main thread
+
+Date: 2026-11-10
+
+Run Pyodide directly in the page. Recipe creation is a blocking operation with
+a loading indicator while Python loads and validates the input. A web worker
+and worker messaging are unnecessary for this flow.

@@ -8,19 +8,19 @@ const common = {
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
 };
 // One classic script keeps file:// exports usable without module fetches or a CDN.
-await build({
+for (const entry of ["viewer", "library"]) await build({
   ...common,
   build: {
     outDir: "frontend/dist",
-    emptyOutDir: true,
+    emptyOutDir: entry === "viewer",
     target: "es2022",
-    license: { fileName: "licenses.txt" },
+    license: { fileName: entry === "viewer" ? "licenses.txt" : "library-licenses.txt" },
     lib: {
-      entry: "frontend/client.tsx",
-      name: "RecipeViewer",
+      entry: entry === "viewer" ? "frontend/client.tsx" : "frontend/library-client.tsx",
+      name: entry === "viewer" ? "RecipeViewer" : "RecipeLibrary",
       formats: ["iife"],
-      fileName: () => "viewer.js",
-      cssFileName: "viewer",
+      fileName: () => `${entry}.js`,
+      cssFileName: entry,
     },
   },
 });

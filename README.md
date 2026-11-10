@@ -175,6 +175,47 @@ share individual recipe pages. Node and Python are generation dependencies only.
 After editing frontend code, rerun `npm run build:viewer` before using the
 single-recipe Python command. Generated files are ignored by Git.
 
+### Add a recipe in the browser
+
+Choose **New recipe** on the front page. **Copy agent instructions** copies the
+current `AGENTS.md` together with the schema, authoring guide, example, decisions,
+and supporting Python files. Paste this into your own agent along with a recipe
+URL or its text. Bring the resulting recipe JSON back by pasting it or uploading
+a `.json` file, then choose **Check & review**.
+
+The existing Python compiler, JSON Schema validation, graph checks, and action
+ordering run directly in your browser with Pyodide. A loading indicator is shown
+while the checker loads and validates; creation controls are disabled until it
+finishes. Review the readable
+recipe or its graph, use **Edit JSON** for corrections, and choose **Save recipe**
+to open the usual ingredient review and cooking guide. Failed checks retain the
+JSON for correction or retry. The app does not call an agent or model service.
+
+Added recipes live only in memory and are cleared on refresh. Navigation from
+the front page to any recipe and back stays within the same page so added
+recipes remain available during that session. Recipe IDs from imports do not
+overwrite existing entries. Database persistence is deferred.
+
+No application server is used for importing, checking, or saving. The first
+check downloads the pinned Pyodide runtime and `jsonschema` packages from
+jsDelivr and requires an internet connection; recipe content stays in the
+browser. Existing generated recipe pages remain self-contained offline exports.
+The front page embeds its existing recipe graphs and bundled instructions.
+
+Run the real browser import tests in a dedicated headless Chromium context:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:browser
+```
+
+These tests need internet access for Pyodide, use a temporary static preview on
+port 18766 (override with `RECIPE_TEST_PORT`), and write failure artifacts to the
+ignored `tmp/browser-tests/` directory. They cover parsing and validation errors,
+graph review, cooking, session-only saves, upload, clipboard fallback, failed
+runtime loading, the loading state, and retry.
+
 ### Viewer controls
 
 For an HTTP preview, run `npm run dev` after setup, then open

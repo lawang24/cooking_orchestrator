@@ -67,3 +67,13 @@ export interface ViewerData {
   graph: CompiledGraph;
   steps: string[];
 }
+
+export interface LibraryRecipe extends ViewerData {
+  id: string;
+  page?: string;
+  source?: string;
+}
+
+export interface LibraryData {
+  recipes: LibraryRecipe[];
+}

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import heapq
 import json
 from pathlib import Path
 import sys
@@ -13,6 +12,7 @@ import webbrowser
 from validate_recipe_graph import validate_graph
 from compile_recipe import compile_recipe
 from recipe_types import CompiledGraph
+from recipe_viewer_data import action_order
 
 
 HERE = Path(__file__).resolve().parent
@@ -22,43 +22,16 @@ def render_recipe(recipe: object) -> str:
     return render_graph(compile_recipe(recipe))
 
 
-def action_order(graph: CompiledGraph) -> list[str]:
-    """A stable walkthrough of validated actions, respecting both edge types.
-
-    Source order only breaks ties between independent actions. This does not
-    schedule overlapping work or mark anything complete.
-    """
-    actions = [node for node in graph['nodes'] if node['type'] == 'action']
-    priority = {node['id']: index for index, node in enumerate(actions)}
-    producers = {edge['to']: edge['from'] for edge in graph['edges'] if edge['from'] in priority}
-    prerequisites = {node['id']: set(node['dependsOn']) for node in actions}
-    for edge in graph['edges']:
-        if edge['to'] in prerequisites and edge['from'] in producers:
-            prerequisites[edge['to']].add(producers[edge['from']])
-    followers: dict[str, set[str]] = {id: set() for id in priority}
-    for id, dependencies in prerequisites.items():
-        for dependency in dependencies:
-            followers[dependency].add(id)
-    ready = [(priority[id], id) for id, dependencies in prerequisites.items() if not dependencies]
-    heapq.heapify(ready)
-    ordered = []
-    while ready:
-        _, id = heapq.heappop(ready)
-        ordered.append(id)
-        for follower in followers[id]:
-            prerequisites[follower].remove(id)
-            if not prerequisites[follower]:
-                heapq.heappush(ready, (priority[follower], follower))
-    if len(ordered) != len(actions):
-        raise ValueError('Cannot build a walkthrough with cyclic action dependencies.')
-    return ordered
-
-
 def render_graph(graph: CompiledGraph, *, has_recipe_index: bool = False) -> str:
     # Reject invalid graph data before handing it to the React static renderer.
     errors = validate_graph(graph)
     if errors:
         raise ValueError('Invalid recipe graph:\n' + '\n'.join(errors))
+    return render_document({'graph': graph, 'steps': action_order(graph), 'hasRecipeIndex': has_recipe_index})
+
+
+def render_document(data: object) -> str:
+    """Build a static library or recipe page with the shared React renderer."""
     renderer = HERE.parent / 'frontend/dist/render.mjs'
     if not renderer.is_file():
         raise ValueError('Viewer build missing. Run npm ci && npm run build:viewer first.')
@@ -68,7 +41,7 @@ def render_graph(graph: CompiledGraph, *, has_recipe_index: bool = False) -> str
     try:
         result = subprocess.run(
             ['node', str(renderer)],
-            input=json.dumps({'graph': graph, 'steps': action_order(graph), 'hasRecipeIndex': has_recipe_index}),
+            input=json.dumps(data),
             capture_output=True, text=True, encoding='utf-8', check=False,
         )
     except FileNotFoundError as error:

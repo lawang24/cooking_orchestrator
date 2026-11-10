@@ -29,7 +29,7 @@ type PlayerEvent =
   | { type: "undo" }
   | { type: "finish"; id: string };
 
-export function App({ graph, steps, hasRecipeIndex }: ViewerData) {
+export function App({ graph, steps, hasRecipeIndex, onHome }: ViewerData & { onHome?: () => void }) {
   const [servings, setServings] = useState(graph.servings);
   const model = useMemo(() => createModel({ graph, steps }, servings), [graph, steps, servings]);
   const schedule = useMemo(
@@ -85,7 +85,11 @@ export function App({ graph, steps, hasRecipeIndex }: ViewerData) {
     <div id="viewer" data-hydrated={ready ? "true" : "false"}>
       <nav className="viewer-nav" aria-label="Recipe navigation" hidden={!hasRecipeIndex && !started}>
         {hasRecipeIndex && (
-          <a className="wordmark" href="./index.html" aria-label="Cooking Orchestrator home">
+          <a className="wordmark" href={onHome ? "#home" : "./index.html"} aria-label="Cooking Orchestrator home" onClick={onHome ? event => {
+            if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            onHome();
+          } : undefined}>
             Cooking Orchestrator
           </a>
         )}

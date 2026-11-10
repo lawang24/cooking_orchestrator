@@ -2,14 +2,13 @@
 
 import argparse
 from functools import partial
-from html import escape
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
-from string import Template
 
 from compile_recipe import compile_recipe
-from visualize_recipe_graph import render_graph
+from recipe_viewer_data import action_order
+from visualize_recipe_graph import render_document, render_graph
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,7 +23,7 @@ class PreviewHandler(SimpleHTTPRequestHandler):
 def build_site(recipes: Path, output: Path) -> list[str]:
     output.mkdir(parents=True, exist_ok=True)
     pages = ['index.html']
-    links = []
+    library = []
     for path in sorted(recipes.glob('*.recipe.json')):
         recipe = json.loads(path.read_text(encoding='utf-8'))
         graph = compile_recipe(recipe)
@@ -34,14 +33,8 @@ def build_site(recipes: Path, output: Path) -> list[str]:
             raise ValueError(f'Duplicate recipe ID: {recipe_id}')
         (output / page).write_text(render_graph(graph, has_recipe_index=True), encoding='utf-8')
         pages.append(page)
-        links.append(
-            f'<li><a href="{escape(page)}"><span class="name">{escape(graph["name"])}</span>'
-            f'<span class="servings">Serves {recipe["servings"]}</span>'
-            '<span class="arrow" aria-hidden="true">→</span></a></li>'
-        )
-    recipe_list = '<ul>' + '\n'.join(links) + '</ul>' if links else '<p>No recipes available.</p>'
-    template = Template((ROOT / 'frontend/recipe-picker.html').read_text(encoding='utf-8'))
-    (output / 'index.html').write_text(template.substitute(recipe_list=recipe_list), encoding='utf-8')
+        library.append({'id': 'saved-' + recipe_id, 'page': page, 'graph': graph, 'steps': action_order(graph)})
+    (output / 'index.html').write_text(render_document({'recipes': library}), encoding='utf-8')
     return pages
 
 

@@ -106,4 +106,6 @@ Keep generated visualizations, `frontend/dist/`, screenshots, `.venv`, and cache
 
 ## Handoff
 
+For recipe creation, return the complete authored recipe JSON in a single copy/pasteable `json` code block so the user can paste it into the viewer's New recipe form. If the consuming interface requests raw JSON, omit the Markdown fences. Include every required field, with no ellipses, placeholders, comments, or prose inside the JSON. Keep any explanation outside the copyable payload; file links alone are not sufficient.
+
 Link the recipe JSON and generated HTML using absolute local paths. State what passed validation, any meaningful assumptions or omissions, and how to regenerate the view. Keep the explanation concise. Commit or push only when the active task authorizes it; creating a graph does not itself request a push.
