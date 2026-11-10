@@ -3,6 +3,7 @@
 import { readFile } from "node:fs/promises";
 import { prerenderToNodeStream } from "react-dom/static";
 import { App } from "./App";
+import { formatRecipeText } from "./portions";
 import type { ViewerData } from "./types";
 
 const input: Buffer[] = [];
@@ -41,7 +42,7 @@ function escape(text: string) {
 }
 process.stdout.write(`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escape(graph.name)} — recipe graph</title>
+<title>${escape(formatRecipeText(graph.name))} — recipe graph</title>
 <style>${style.replace(/<\/style/gi, "<\\/style")}</style></head><body>
 <div id="root"${hasRecipeIndex ? ' data-recipe-index' : ''}>${markup}</div>
 <script id="recipe-data" type="application/json">${json(graph)}</script>

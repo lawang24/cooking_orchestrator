@@ -1,6 +1,23 @@
-import type { CompiledGraph, FoodStateNode } from "./types";
+import type { CompiledGraph, FoodStateNode, Unit } from "./types";
 
-export const formatQuantity = (quantity: number) => Number(quantity.toPrecision(15)).toString();
+// Round only for display; serving calculations keep the original precision.
+export function formatQuantity(quantity: number, unit?: Unit): string {
+  if (unit === "g") return String(Math.round(quantity));
+  const quarters = Math.round(Math.abs(quantity) * 4);
+  const whole = Math.floor(quarters / 4);
+  const fraction = ["", "¼", "½", "¾"][quarters % 4];
+  const amount = fraction ? `${whole || ""}${whole ? " " : ""}${fraction}` : String(whole);
+  return quantity < 0 && quarters ? `−${amount}` : amount;
+}
+
+// Recipe prose can also contain amounts, dimensions, and time ranges.
+export function formatRecipeText(text: string): string {
+  return text.replace(/(?<![\w.])\d*\.\d+(?!\d|\.\d)/g, (value, offset: number) => {
+    // Include both endpoints when a gram amount is written as a range.
+    const grams = /^(?:\s*[–—-]\s*\d+(?:\.\d+)?)?\s*(?:g|grams?)\b/i.test(text.slice(offset + value.length));
+    return formatQuantity(Number(value), grams ? "g" : undefined);
+  });
+}
 
 const list = new Intl.ListFormat("en");
 
@@ -37,7 +54,7 @@ export function forServings(graph: CompiledGraph, servings = graph.servings): Co
       const batch = portions.get(node.id);
       if (node.type !== "action" || !batch) return node;
       const amounts = batch.map(portion =>
-        `${formatQuantity(portion.quantity!)} ${portion.unit} ${portion.name.toLowerCase()}`
+        `${formatQuantity(portion.quantity!, portion.unit)} ${portion.unit} ${portion.name.toLowerCase()}`
       );
       return { ...node, instruction: `Measure ${list.format(amounts)}.` };
     }),

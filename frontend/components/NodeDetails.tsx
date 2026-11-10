@@ -1,5 +1,5 @@
 import { formatQuantity } from "../portions";
-import { OriginalMethod } from "./OriginalMethod";
+import { ActionFlow } from "./ActionFlow";
 import { labels, meta, name, time, type Model } from "../model";
 
 export function NodeDetails({
@@ -31,7 +31,7 @@ export function NodeDetails({
               >
                 {name(node)}
                 {node.type !== "action" && node.quantity !== undefined
-                  ? ` · ${formatQuantity(node.quantity)} ${node.unit}`
+                  ? ` · ${formatQuantity(node.quantity, node.unit)} ${node.unit}`
                   : ""}
               </button>
             );
@@ -62,8 +62,7 @@ export function NodeDetails({
             <p>{meta(node, model.graph)}</p>
             {node.type === "action" && (
               <>
-                <p>{node.instruction}</p>
-                <OriginalMethod model={model} id={node.id} />
+                <ActionFlow key={node.id} model={model} node={node} />
                 <h3>Timing</h3>
                 <p>
                   {time(node.scheduled_duration_seconds)} planned ·{" "}

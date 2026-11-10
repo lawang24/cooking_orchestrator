@@ -6,6 +6,7 @@ const path = require('node:path');
 const os = require('node:os');
 const {execFileSync} = require('node:child_process');
 const {JSDOM, VirtualConsole} = require('jsdom');
+const {formatQuantity, formatRecipeText, forServings} = require('../frontend/portions.ts');
 
 const root = path.resolve(__dirname, '..');
 const python = process.env.PYTHON || path.join(root, '.venv', 'bin', 'python');
@@ -82,6 +83,114 @@ async function cookingViewer(...args) {
   return v;
 }
 
+test('quantities use mixed fractions rounded to the nearest quarter, including carry and ties', () => {
+  for (const [quantity, expected] of [
+    [0, '0'], [1, '1'], [0.25, '¼'], [0.5, '½'], [0.75, '¾'],
+    [1.25, '1 ¼'], [2.5, '2 ½'], [7.75, '7 ¾'],
+    [1 / 3, '¼'], [2 / 3, '¾'], [0.124, '0'], [0.125, '¼'],
+    [0.374, '¼'], [0.375, '½'], [0.625, '¾'], [1.875, '2'],
+    [1.9999999999999998, '2'],
+  ]) assert.equal(formatQuantity(quantity), expected, String(quantity));
+  assert.equal(formatRecipeText('Use 1.3 cups; cut .5-inch pieces; simmer 2.5–3.75 minutes.'),
+    'Use 1 ¼ cups; cut ½-inch pieces; simmer 2 ½–3 ¾ minutes.');
+  assert.equal(formatRecipeText('Divide into 1.5. Version v1.2.3.'), 'Divide into 1 ½. Version v1.2.3.');
+});
+
+test('rounding stays in presentation and does not accumulate when scaling servings', () => {
+  const graph = {servings: 3, nodes: [
+    {id: 'oil', type: 'ingredient', name: 'Oil', quantity: 1, unit: 'tbsp'},
+  ], edges: []};
+  const scaled = forServings(graph, 1);
+  assert.equal(scaled.nodes[0].quantity, 1 / 3);
+  assert.equal(formatQuantity(scaled.nodes[0].quantity), '¼');
+  assert.equal(forServings(scaled, 3).nodes[0].quantity, 1);
+  assert.equal(graph.nodes[0].quantity, 1);
+});
+
+test('grams round to whole numbers in quantities and recipe prose while other units use fractions', () => {
+  for (const [quantity, expected] of [[12.4, '12'], [12.5, '13'], [12.75, '13'], [0.25, '0']]) {
+    assert.equal(formatQuantity(quantity, 'g'), expected);
+  }
+  assert.equal(formatQuantity(12.5, 'oz'), '12 ½');
+  assert.equal(formatQuantity(1.5, 'kg'), '1 ½');
+  assert.equal(formatRecipeText('Use 12.4 g butter, 12.5grams flour, and 0.5 tsp salt.'),
+    'Use 12 g butter, 13grams flour, and ½ tsp salt.');
+  assert.equal(formatRecipeText('Add 10.4–12.5 grams or 1.5 kg.'), 'Add 10–13 grams or 1 ½ kg.');
+});
+
+test('whole grams stay consistent across static HTML, scaled cooking steps and graph details', async t => {
+  const source = new JSDOM(generate('scrambled-eggs'));
+  const graph = JSON.parse(source.window.document.getElementById('recipe-data').textContent);
+  const steps = JSON.parse(source.window.document.getElementById('step-data').textContent);
+  source.window.close();
+  for (const id of ['salted_butter', 'pan_butter']) {
+    Object.assign(graph.nodes.find(node => node.id === id), {quantity: 12.6, unit: 'g'});
+  }
+  graph.nodes.find(node => node.id === 'pan_butter').name = 'Salted butter (12.6 g)';
+  graph.nodes.find(node => node.id === 'measure_salted_butter').instruction = 'Measure 12.6 g of salted butter.';
+  graph.notes = ['Use 12.6 grams of butter.'];
+  const html = execFileSync('node', [path.join(root, 'frontend/dist/render.mjs')], {
+    input: JSON.stringify({graph, steps}), encoding: 'utf8',
+  });
+  const plain = new JSDOM(html);
+  t.after(() => plain.window.close());
+  const document = plain.window.document;
+  assert.match(document.getElementById('ingredient-list').textContent, /13 g Salted butter/);
+  assert.match(document.getElementById('recipe-instructions').textContent, /Measure 13 g of salted butter/);
+  assert.match(document.getElementById('recipe-notes').textContent, /Use 13 grams/);
+  assert.deepEqual(JSON.parse(document.getElementById('recipe-data').textContent), graph);
+  const v = await viewer('scrambled-eggs', html);
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  await setServings(v, '3');
+  assert.match(v.document.querySelector('.ingredient-review').textContent, /38 g Salted butter/);
+  await v.click(v.get('start-recipe'));
+  await v.toggle();
+  await v.panel('progress');
+  await v.click([...v.get('progress-list').querySelectorAll('button')].find(b => b.textContent.includes('Measure salted butter')));
+  assert.equal(v.instruction(), 'Measure 38 g salted butter.');
+  assert.equal(v.get('stepbar').querySelector('.output-food .food-amount').textContent, '38 g');
+  assert.match(v.get('stepbar').querySelector('.original-method').textContent, /Measure 13 g of salted butter/);
+  await v.click(v.get('map-button'));
+  await v.graphView('whole');
+  const portion = v.get('nodes').querySelector('[data-id="pan_butter"]');
+  await v.dispatch(portion, new v.dom.window.MouseEvent('click', {bubbles:true}));
+  assert.match(portion.textContent, /38 g/);
+  assert.match(v.get('details').textContent, /38 g/);
+});
+
+test('fractions appear in static recipe prose and labels and persist after hydration', async t => {
+  const source = new JSDOM(generate('beef-onion-stir-fry'));
+  const graph = JSON.parse(source.window.document.getElementById('recipe-data').textContent);
+  const steps = JSON.parse(source.window.document.getElementById('step-data').textContent);
+  source.window.close();
+  graph.notes = ['Cut into 0.5-inch pieces.'];
+  const html = execFileSync('node', [path.join(root, 'frontend/dist/render.mjs')], {
+    input: JSON.stringify({graph, steps}), encoding: 'utf8',
+  });
+  const plain = new JSDOM(html);
+  t.after(() => plain.window.close());
+  const content = plain.window.document.getElementById('recipes-panel');
+  assert.match(content.textContent, /Measure ¼ tsp of baking soda/);
+  assert.match(content.textContent, /Cut into ½-inch pieces/);
+  assert.doesNotMatch(content.textContent, /\d+\.\d+/);
+  // The JSON boundary retains precise numbers and original authored text.
+  assert.deepEqual(JSON.parse(plain.window.document.getElementById('recipe-data').textContent), graph);
+  const v = await viewer('beef-onion-stir-fry', html);
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  assert.doesNotMatch(v.document.querySelector('.ingredient-review').textContent, /\d+\.\d+/);
+  await v.click(v.get('start-recipe'));
+  await v.toggle();
+  await v.panel('progress');
+  await v.click([...v.get('progress-list').querySelectorAll('button')].find(b => b.textContent.includes('Measure baking soda')));
+  assert.equal(v.instruction(), 'Measure ¼ tsp of baking soda.');
+  await v.click(v.get('map-button'));
+  await v.graphView('whole');
+  const portion = v.get('nodes').querySelector('[data-id="marinade_baking_soda"]');
+  await v.dispatch(portion, new v.dom.window.MouseEvent('click', {bubbles:true}));
+  assert.match(v.get('details').textContent, /Baking soda \(¼ tsp\)/);
+  assert.doesNotMatch(v.get('details').textContent, /\d+\.\d+/);
+});
+
 test('the opening screen lists every ingredient total before cooking begins', async t => {
   const v = await viewer('beef-onion-stir-fry');
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
@@ -89,7 +198,7 @@ test('the opening screen lists every ingredient total before cooking begins', as
   const graph = JSON.parse(v.get('recipe-data').textContent);
   assert.equal(review.querySelector('h1').textContent, graph.name);
   assert.deepEqual([...review.querySelectorAll('li')].map(li => li.textContent),
-    graph.nodes.filter(n => n.type === 'ingredient').map(n => `${n.quantity} ${n.unit} ${n.name}`));
+    graph.nodes.filter(n => n.type === 'ingredient').map(n => `${formatQuantity(n.quantity, n.unit)} ${n.unit} ${formatRecipeText(n.name)}`));
   assert.ok(v.get('stepbar').hidden);
   assert.equal((await v.key('ArrowRight')).defaultPrevented, false);
   await v.click(v.get('start-recipe'));
@@ -114,28 +223,100 @@ test('servings scale totals and split measurements across cooking, recipes and g
   const amounts = () => [...review.querySelectorAll('li')].map(li => li.textContent);
   const base = amounts();
   await setServings(v, '6');
-  assert.ok(amounts().includes('7.5 tbsp Water'));
+  assert.ok(amounts().includes('7 ½ tbsp Water'));
   await setServings(v, '4');
   assert.deepEqual(amounts(), base);
   await setServings(v, '2');
-  assert.ok(amounts().includes('2.5 tbsp Water'));
+  assert.ok(amounts().includes('2 ½ tbsp Water'));
   await v.click(v.get('start-recipe'));
   await v.toggle();
   await v.panel('recipes');
   assert.match(v.get('recipe-list').textContent, /2 servings/);
-  const adjusted = 'Measure 0.5 tbsp water for marinade and 0.125 cup water for sauce.';
+  const adjusted = 'Measure ½ tbsp water for marinade and ¼ cup water for sauce.';
   const water = v.document.querySelector('#recipe-instructions [data-action-id="measure_water"]');
   assert.equal(water.querySelector('p').textContent, adjusted);
-  assert.match(water.querySelector('details').textContent, /Original method \(4 servings\).*1 tbsp, 0.25 cup/);
+  assert.deepEqual([...water.querySelectorAll('.output-food .food-amount')].map(el => el.textContent),
+    ['½ tbsp', '¼ cup']);
+  assert.match(water.querySelector('details').textContent, /Original method \(4 servings\).*1 tbsp, ¼ cup/);
   assert.match(v.document.querySelector('[data-action-id="marinate_beef"]').textContent, /15–30 minutes/);
   await v.panel('progress');
   await v.click([...v.get('progress-list').querySelectorAll('button')].find(b => b.textContent.includes('Measure water')));
   assert.equal(v.instruction(), adjusted);
+  assert.equal(v.get('stepbar').querySelector('.step-outputs').textContent,
+    water.querySelector('.step-outputs').textContent);
   await v.click(v.get('map-button'));
   await v.graphView('whole');
   const portion = v.get('nodes').querySelector('[data-id="sauce_water"]');
   await v.dispatch(portion, new v.dom.window.MouseEvent('click', {bubbles: true}));
-  assert.match(v.get('details').textContent, /0.125 cup/);
+  assert.match(v.get('details').textContent, /¼ cup/);
+  assert.match(portion.textContent, /¼ cup/);
+});
+
+test('steps separate inputs, action and outputs, with expandable receiving-step inputs', async t => {
+  const v = await cookingViewer('beef-onion-stir-fry');
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  await v.toggle();
+  await v.panel('progress');
+  await v.click([...v.get('progress-list').querySelectorAll('button')].find(b => b.textContent.includes('Measure oyster sauce')));
+  const flow = v.get('stepbar').querySelector('.action-flow');
+  assert.deepEqual([...flow.children].map(section => section.getAttribute('aria-label')), ['Inputs', 'Action', 'Outputs']);
+  assert.deepEqual([...flow.querySelectorAll('.flow-label')].map(heading => heading.textContent), ['Inputs', 'Outputs']);
+  assert.equal(flow.querySelector('.action-tools'), null);
+  assert.equal(flow.querySelector('.step-inputs .food-name').textContent, 'Oyster sauce');
+  assert.equal(flow.querySelector('.step-inputs .food-amount').textContent, '3 tsp');
+  assert.ok(flow.querySelector('.step-action #step-instruction'));
+  const uses = [...flow.querySelectorAll('.output-card')];
+  assert.equal(uses.length, 2);
+  assert.equal(uses[0].querySelector('.output-food .food-amount').textContent, '1 tsp');
+  assert.equal(uses[1].querySelector('.output-food .food-amount').textContent, '2 tsp');
+  assert.equal(uses[0].querySelector('summary').textContent, 'Used for Mix marinade · 6 inputs');
+  assert.equal(uses[1].querySelector('summary').textContent, 'Used for Mix sauce · 7 inputs');
+  assert.match(uses[0].textContent, /Sliced raw beef/);
+  assert.ok(uses[0].textContent.includes('Water for marinade'));
+  assert.ok(!uses[0].textContent.includes('Light soy sauce'));
+  assert.match(uses[1].textContent, /Light soy sauce/);
+  assert.ok(uses[1].textContent.includes('Water for sauce'));
+  assert.ok(!uses[1].textContent.includes('Sliced raw beef'));
+  for (const use of uses) {
+    const details = use.querySelector('details');
+    assert.equal(details.open, true, 'Full input lists start expanded');
+    const current = details.querySelector('[data-current="true"]');
+    assert.equal(current.dataset.foodId, use.dataset.outputId);
+    assert.equal(details.querySelector('.food-list > li').dataset.foodId, use.dataset.outputId, 'This output is listed first');
+    assert.match(current.textContent, /This output/);
+  }
+  await v.click(uses[1].querySelector('summary'));
+  assert.equal(uses[1].querySelector('details').open, false);
+  assert.equal(uses[1].querySelectorAll('.food-list > li').length, 7, 'Show all receiving inputs, including this output');
+  await v.click(uses[1].querySelector('summary'));
+  assert.equal(uses[1].querySelector('details').open, true);
+  const text = flow.querySelector('.step-outputs').textContent;
+  await v.click(v.get('map-button'));
+  await v.dispatch(v.get('nodes').querySelector('[data-id="measure_oyster_sauce"]'), new v.dom.window.MouseEvent('click', {bubbles:true}));
+  assert.equal(v.get('details').querySelector('.step-outputs').textContent, text);
+});
+
+test('next uses are readable offline, stop at the immediate action and exclude ordering prerequisites', t => {
+  const dom = new JSDOM(generate('beef-onion-stir-fry'));
+  t.after(() => dom.window.close());
+  const instruction = id => dom.window.document.querySelector(`#recipe-instructions [data-action-id="${id}"]`);
+  const beef = instruction('measure_flank_steak').querySelector('.step-outputs');
+  assert.match(beef.querySelector('summary').textContent, /Used for Slice beef · 1 input$/);
+  assert.equal(beef.querySelectorAll('.food-list > li').length, 1);
+  assert.ok(!beef.textContent.includes('Mix marinade'), 'Do not skip preparation to a later action');
+  const onion = instruction('prep_onions').querySelector('.step-outputs');
+  assert.match(onion.querySelector('summary').textContent, /Used for Sear onions · 2 inputs/);
+  assert.match(onion.textContent, /Neutral oil for searing onions/);
+  assert.ok(!onion.textContent.includes('beef'), 'Sear beef is an ordering prerequisite, not a food input');
+  const finished = instruction('finish_dish').querySelector('.step-outputs');
+  assert.match(finished.textContent, /Finished dish/);
+  assert.equal(finished.querySelector('details'), null, 'Finished outputs have no next action');
+  const spices = new JSDOM(generate('butter-paneer'));
+  t.after(() => spices.window.close());
+  const bayLeaf = spices.window.document.querySelector('[data-action-id="measure_bay_leaf"] .step-outputs');
+  assert.match(bayLeaf.textContent, /Used for Bloom whole spices/);
+  assert.match(bayLeaf.textContent, /[Cc]innamon/);
+  assert.match(bayLeaf.textContent, /[Cc]loves/);
 });
 
 test('servings change by one and fractional or nonpositive counts cannot start cooking', async t => {
@@ -188,14 +369,14 @@ test('static exports contain visible semantic recipe content without executing J
     assert.equal(document.getElementById('viewer').dataset.hydrated, 'false');
     const ingredients = [...document.getElementById('ingredient-list').children];
     const expected = graph.nodes.filter(node => node.type === 'ingredient');
-    assert.deepEqual(ingredients.map(item => item.textContent), expected.map(node => `${node.quantity} ${node.unit} ${node.name}`));
+    assert.deepEqual(ingredients.map(item => item.textContent), expected.map(node => `${formatQuantity(node.quantity, node.unit)} ${node.unit} ${formatRecipeText(node.name)}`));
     const instructions = [...document.getElementById('recipe-instructions').children];
     assert.deepEqual(instructions.map(item => item.dataset.actionId), steps);
     for (const [i, id] of steps.entries()) {
-      assert.ok(instructions[i].textContent.includes(graph.nodes.find(node => node.id === id).instruction));
+      assert.ok(instructions[i].textContent.includes(formatRecipeText(graph.nodes.find(node => node.id === id).instruction)));
     }
-    for (const note of graph.notes) assert.ok(content.textContent.includes(note));
-    for (const id of graph.outputs) assert.ok(content.textContent.includes(graph.nodes.find(node => node.id === id).name));
+    for (const note of graph.notes) assert.ok(content.textContent.includes(formatRecipeText(note)));
+    for (const id of graph.outputs) assert.ok(content.textContent.includes(formatRecipeText(graph.nodes.find(node => node.id === id).name)));
     assert.equal(document.querySelectorAll('script[src], link[rel="stylesheet"]').length, 0, 'No external runtime assets');
     assert.ok(document.getElementById('stepbar').hidden, 'Inert controls stay hidden until hydration');
   }
@@ -257,6 +438,9 @@ test('merged meal exports hydrate with component servings and namespaced actions
   assert.deepEqual([...v.get('recipe-list').children].map(item => item.textContent),
     graph.recipes.map(recipe => `${recipe.name} · ${recipe.servings} servings`));
   assert.deepEqual([...v.get('recipe-instructions').children].map(item => item.dataset.actionId), steps);
+  const oyster = v.document.querySelector('[data-output-id="beef-sauce_oyster"]');
+  assert.match(oyster.textContent, /Used for Beef mix sauce/);
+  assert.ok(!oyster.textContent.includes('Gyudon'), 'Other inputs belong to this consuming action, not another recipe');
   await v.panel('graph');
   assert.equal(v.get('nodes').children.length, steps.length);
   await v.graphView('whole');
@@ -376,7 +560,7 @@ test('timing shows only the scheduled duration, provenance and attention', async
     assert.equal(timing.replace(/^Preview · /, ''), expectedTiming[id]);
     await v.click(v.get('map-button'));
     await v.dispatch(v.get('nodes').querySelector(`[data-id="${id}"]`), new v.dom.window.MouseEvent('click', {bubbles:true}));
-    assert.ok(v.get('details').textContent.includes(action.instruction));
+    assert.ok(v.get('details').textContent.includes(formatRecipeText(action.instruction)));
     assert.doesNotMatch(v.get('details').textContent, /Planning estimate:|undefined/);
     assert.match(v.get('details').textContent, action.scheduled_duration_source === 'estimate' ? /Estimated duration/ : /Recipe duration/);
     await v.toggle();

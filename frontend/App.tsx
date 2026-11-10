@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { completedNodes, createModel, name } from "./model";
+import { formatRecipeText } from "./portions";
 import type { ViewerData } from "./types";
 import { GraphView } from "./components/GraphView";
 import { IngredientList, RecipeDocument } from "./components/RecipeDocument";
@@ -102,7 +103,7 @@ export function App({ graph, steps, hasRecipeIndex }: ViewerData) {
       </nav>
       {ready && !started && (
         <main className="ingredient-review" aria-labelledby="recipe-title">
-          <h1 id="recipe-title">{graph.name}</h1>
+          <h1 id="recipe-title">{formatRecipeText(graph.name)}</h1>
           <form onSubmit={event => {
             event.preventDefault();
             dispatch({ type: "startRecipe" });

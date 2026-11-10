@@ -1,4 +1,5 @@
-import { OriginalMethod } from "./OriginalMethod";
+import { ActionFlow } from "./ActionFlow";
+import { formatRecipeText } from "../portions";
 import { useMemo } from "react";
 import { edgePath, makeLayout, name, timing, type Model } from "../model";
 
@@ -58,13 +59,8 @@ export function StepPlayer({
               {timing(node)}
             </p>
           )}
-          <h1 id="step-instruction" tabIndex={-1}>{node?.instruction ?? message}</h1>
-          {node && <OriginalMethod key={node.id} model={model} id={node.id} />}
-          {node && node.equipment.length > 0 && (
-            <p id="step-tools">
-              Use {node.equipment.map((id) => id.replace(/_/g, " ")).join(", ")}
-            </p>
-          )}
+          {node ? <ActionFlow model={model} node={node} primary />
+            : <h1 id="step-instruction" tabIndex={-1}>{message}</h1>}
         </div>
         <nav className="step-controls" aria-label="Cooking controls">
           <button
@@ -99,7 +95,7 @@ export function StepPlayer({
                 <li key={action.id}>
                   <div>
                     <strong>{name(action)}</strong>
-                    <p>{action.instruction}</p>
+                    <p>{formatRecipeText(action.instruction)}</p>
                     <small>{timing(action)}</small>
                   </div>
                   <button

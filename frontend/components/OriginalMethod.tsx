@@ -1,4 +1,5 @@
 import type { Model } from "../model";
+import { formatRecipeText } from "../portions";
 
 export function OriginalMethod({ model, id }: { model: Model; id: string }) {
   const method = model.originalMethods.get(id);
@@ -6,7 +7,7 @@ export function OriginalMethod({ model, id }: { model: Model; id: string }) {
   return (
     <details className="original-method">
       <summary>Original method ({model.originalServings} {model.originalServings === 1 ? "serving" : "servings"})</summary>
-      <p>{method}</p>
+      <p>{formatRecipeText(method)}</p>
     </details>
   );
 }

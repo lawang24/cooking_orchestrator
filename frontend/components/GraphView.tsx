@@ -16,6 +16,7 @@ import {
   type Model,
 } from "../model";
 import { NodeDetails } from "./NodeDetails";
+import { formatRecipeText } from "../portions";
 
 export function GraphView({
   model,
@@ -154,7 +155,7 @@ export function GraphView({
   return (
     <section id="graph-panel" aria-label="Whole graph" hidden={!active}>
       <div className="graph-summary">
-        <h2 id="title">{graph.name}</h2>
+        <h2 id="title">{formatRecipeText(graph.name)}</h2>
         <div id="summary" className="muted">
           {graph.recipes
             ? `${graph.recipes.length} recipes`

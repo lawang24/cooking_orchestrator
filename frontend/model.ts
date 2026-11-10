@@ -1,4 +1,4 @@
-import { forServings, formatQuantity } from "./portions";
+import { forServings, formatQuantity, formatRecipeText } from "./portions";
 import dagre from "@dagrejs/dagre";
 import type {
   ActionNode,
@@ -15,7 +15,7 @@ export const labels = {
 };
 export const name = (node: FoodNode) =>
   "name" in node
-    ? node.name
+    ? formatRecipeText(node.name)
     : node.id.replace(/[_-]/g, " ").replace(/^./, (c) => c.toUpperCase());
 export const time = (seconds: number) =>
   seconds >= 60
@@ -25,7 +25,7 @@ export const timing = (node: ActionNode) =>
   `${time(node.scheduled_duration_seconds)} planned${node.scheduled_duration_source === "estimate" ? " (estimate)" : ""} · ${node.attention === "passive" ? "Hands-off" : "Hands-on"}`;
 export function meta(node: FoodNode, graph: CompiledGraph) {
   if (node.type !== "action" && node.quantity !== undefined)
-    return `${formatQuantity(node.quantity)} ${node.unit}`;
+    return `${formatQuantity(node.quantity, node.unit)} ${node.unit}`;
   if (node.type === "action")
     return `${time(node.scheduled_duration_seconds)} · ${node.attention}${node.scheduled_duration_source === "estimate" ? " · est." : ""}`;
   return graph.outputs.includes(node.id)

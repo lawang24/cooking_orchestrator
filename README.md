@@ -156,6 +156,11 @@ timings, notes, and finished dishes. React hydrates that HTML and opens the
 ingredient list. Choose **Start recipe** to see the first task. The complete document remains available under
 **Overview → Recipes**. No browser requests to Python or Node are needed.
 
+Quantities and decimal amounts in recipe text display as fractions, rounded to
+the nearest ¼ (for example, `1.3` displays as `1 ¼`). Gram amounts round to the
+nearest whole gram instead. Stored quantities retain
+their precision for serving calculations.
+
 To regenerate **all** saved recipes after frontend or recipe changes:
 
 ```sh
@@ -182,6 +187,7 @@ page. Stop with Ctrl+C; choose another port with `npm run dev -- --port 8767`.
 - Before starting a single recipe, set **Servings** to a whole number of 1 or more. Ingredient totals and each measured portion update together. Cooking times use the original recipe’s guidance. Expand **Original method** on a scaled measurement for the author’s technique and original quantities. Reloading restores the authored yield.
 - After **Start recipe**, each assigned action starts immediately. A hands-on action stays current until you choose **Done**. A passive action moves to **In progress** and the viewer offers the next eligible task. Each passive task has its own **Done** button, available even while you work on another action. Occasional stirring can stay in the passive instruction.
 - **Undo last action** reverses the last completion and restores the tasks that were running at that point. **Right** activates the main button and **Left** undoes the last change. Progress lasts until reload.
+- Each step shows **Inputs**, the cooking instruction, and **Outputs**. Each output shows its amount and the step it is **Used for**, with that step's full input list expanded by default and the current output listed first and labeled **This output**. Select **Used for** to collapse or expand the list. Finished dishes are labeled directly. Amounts follow serving adjustments, and all connections come from food flow. Follow the receiving action's instructions for when to combine its ingredients.
 - The bottom-right minimap shows one dot per action. Links run from earlier actions to the actions that use their food or require them to finish first. A ring marks the current action, and green dots mark completed actions. Click the minimap to explore those actions in detail.
 - Open **Overview** in the top-right corner. **Progress** shows running and finished actions. Select any action to preview its instructions, then choose **Back to cooking** to resume. **Recipes** contains the complete readable recipe document: serving counts, ingredients, instructions, notes, and finished dishes.
 - **Whole graph** opens in **Actions only** view. Solid arrows connect actions that supply food to the actions that use it. Choose **View → Whole graph** to see the ingredients and food states along those paths. Both views mark completed actions with **✓ Done** and update when you undo a completion. Select a node to inspect it or follow a link in its details. Scroll to zoom, drag to pan, or use the zoom, layout, and fit controls. **Show ordering** toggles the dashed prerequisite arrows and retains their layout constraints.
