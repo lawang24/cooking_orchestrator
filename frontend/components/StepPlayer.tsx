@@ -1,22 +1,31 @@
 import { useMemo } from "react";
-import { edgePath, makeLayout, timing, type Model } from "../model";
+import { edgePath, makeLayout, name, timing, type Model } from "../model";
 
-export interface PlayerProps {
+import type { CookingEvent, CookingState } from "../scheduler";
+import type { ActionNode } from "../types";
+
+interface PlayerProps {
   model: Model;
-  index: number;
-  done: ReadonlySet<string>;
+  node?: ActionNode;
+  state: CookingState;
   hidden: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
+  preview: boolean;
+  canUndo: boolean;
+  onUndo: () => void;
+  onReturn: () => void;
+  onEvent: (event: CookingEvent) => void;
   onMap: () => void;
 }
 export function StepPlayer({
   model,
-  index,
-  done,
+  node,
+  state,
   hidden,
-  onPrevious,
-  onNext,
+  preview,
+  canUndo,
+  onUndo,
+  onReturn,
+  onEvent,
   onMap,
 }: PlayerProps) {
   const { actions, actionLinks, steps } = model;
@@ -30,47 +39,84 @@ export function StepPlayer({
       ),
     [model],
   );
-  const node = actions[index];
-  const last = index === actions.length - 1;
-  const finished = last && done.has(node.id);
-  const count = steps.filter((id) => done.has(id)).length;
-  const current = layout.node(node.id);
+  const { done, running } = state;
+  const passive = actions.filter(
+    (action) => action.attention === "passive" && running.has(action.id),
+  );
+  const current = node && layout.node(node.id);
+  let message = "This recipe needs more than one cook to continue.";
+  if (done.size === steps.length) message = "Recipe complete";
+  else if (running.size) message = "Waiting for a task in progress";
+  const started = node && running.has(node.id);
+  const label = started ? "Mark done" : "Start task";
   return (
     <main id="stepbar" aria-label="Current cooking action" hidden={hidden}>
       <div className="action-focus">
         <div aria-live="polite" aria-atomic="true">
-          <p id="step-timing">{timing(node)}</p>
-          <h1 id="step-instruction">{node.instruction}</h1>
-          <p id="step-tools" hidden={!node.equipment.length}>
-            Use {node.equipment.map((id) => id.replace(/_/g, " ")).join(", ")}
-          </p>
+          {node && (
+            <p id="step-timing">
+              {preview ? "Preview · " : started ? "In progress · " : ""}
+              {timing(node)}
+            </p>
+          )}
+          <h1 id="step-instruction" tabIndex={-1}>{node?.instruction ?? message}</h1>
+          {node && node.equipment.length > 0 && (
+            <p id="step-tools">
+              Use {node.equipment.map((id) => id.replace(/_/g, " ")).join(", ")}
+            </p>
+          )}
         </div>
-        <nav className="step-controls" aria-label="Step navigation">
+        <nav className="step-controls" aria-label="Cooking controls">
           <button
             id="previous"
             type="button"
-            disabled={index === 0 && !finished}
-            onClick={onPrevious}
-            aria-label={finished ? "Undo finish" : "Previous step"}
+            disabled={!canUndo || preview}
+            onClick={onUndo}
           >
-            {finished ? "Undo finish" : "← Previous"}
+            Undo last action
           </button>
           <button
             id="next"
             type="button"
-            disabled={finished}
-            onClick={onNext}
-            aria-label={
-              last
-                ? finished
-                  ? "✓ Done"
-                  : "Finish step"
-                : "Complete step and go to next"
-            }
+            hidden={!preview && !node}
+            disabled={!preview && !node}
+            onClick={() => {
+              if (preview) onReturn();
+              else if (node)
+                onEvent({ type: started ? "finish" : "start", id: node.id });
+            }}
           >
-            {last ? (finished ? "✓ Done" : "Finish step") : "Next →"}
+            {preview ? "Back to cooking" : node ? label : "Start task"}
           </button>
         </nav>
+        {passive.length > 0 && (
+          <section
+            className="running-tasks"
+            aria-label="Passive tasks in progress"
+          >
+            <h2>In progress</h2>
+            <ul>
+              {passive.map((action) => (
+                <li key={action.id}>
+                  <div>
+                    <strong>{name(action)}</strong>
+                    <p>{action.instruction}</p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Mark ${name(action)} done`}
+                    onClick={() => {
+                      onReturn();
+                      onEvent({ type: "finish", id: action.id });
+                    }}
+                  >
+                    Mark done
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
       <button
         id="map-button"
@@ -78,12 +124,12 @@ export function StepPlayer({
         title="Open whole graph"
         aria-controls="graph-panel"
         onClick={onMap}
-        aria-label={`Open whole graph. ${count} of ${steps.length} actions done.`}
+        aria-label={`Open whole graph. ${done.size} of ${steps.length} actions done.`}
       >
         <span className="map-caption">
           <strong>Recipe map</strong>
           <small id="map-count">
-            {count} / {steps.length} done
+            {done.size} / {steps.length} done
           </small>
         </span>
         <svg
@@ -114,7 +160,9 @@ export function StepPlayer({
               />
             ))}
           </g>
-          <circle id="map-current" r={9} cx={current.x} cy={current.y} />
+          {current && (
+            <circle id="map-current" r={9} cx={current.x} cy={current.y} />
+          )}
         </svg>
       </button>
     </main>

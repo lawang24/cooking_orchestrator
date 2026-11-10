@@ -523,3 +523,71 @@ summary:focus-visible {
 .recipe-document .instruction-list p {
   margin-bottom: 6px;
 }
+
+.running-tasks {
+  margin: 2rem auto 1rem;
+  max-width: 36rem;
+  text-align: left;
+}
+.running-tasks ul {
+  padding: 0;
+  list-style: none;
+}
+.running-tasks li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--line);
+}
+.running-tasks p {
+  margin: 0;
+  color: var(--muted);
+}
+.running-tasks button {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+#stepbar {
+  padding-top: 72px;
+}
+
+.ingredient-review {
+  width: min(100%, 38rem);
+  margin: 0 auto;
+  padding: clamp(24px, 6vh, 64px) 24px;
+  overflow-wrap: anywhere;
+}
+.ingredient-review h1 {
+  font: 500 clamp(2rem, 5vw, 3rem)/1.15 Georgia, serif;
+}
+.ingredient-review h2 {
+  margin: 28px 0 8px;
+}
+.ingredient-review .ingredients {
+  list-style: none;
+  padding: 0;
+}
+.ingredient-review li {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 16px;
+}
+.ingredient-review .amount {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+#start-recipe {
+  margin-top: 24px;
+  padding: 12px 24px;
+  border-radius: 24px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}

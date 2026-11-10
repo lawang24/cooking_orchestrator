@@ -50,14 +50,8 @@ export function createModel({ graph, steps }: ViewerData) {
   const predecessors = new Map(
     graph.nodes.map((node) => [node.id, [] as string[]]),
   );
-  const successors = new Map(
-    graph.nodes.map((node) => [node.id, [] as string[]]),
-  );
-  for (const { from, to } of connections) {
-    predecessors.get(to)!.push(from);
-    successors.get(from)!.push(to);
-  }
-  // Collapse food states only for the action minimap, retaining ordering edges.
+  for (const { from, to } of connections) predecessors.get(to)!.push(from);
+  // Collapse food states for the scheduler and action minimap, retaining ordering edges.
   const actionLinks: Connection[] = [];
   for (const node of actions) {
     const parents = new Map<string, Connection["kind"]>(
@@ -76,26 +70,18 @@ export function createModel({ graph, steps }: ViewerData) {
     byId,
     actions,
     connections,
-    predecessors,
-    successors,
     actionLinks,
   };
 }
 export type Model = ReturnType<typeof createModel>;
 
-// Confirming an action also confirms its transitive prerequisites and food outputs.
+// The graph highlights confirmed actions and their food inputs and outputs.
 export function completedNodes(model: Model, confirmed: ReadonlySet<string>) {
-  const done = new Set<string>();
-  const pending = [...confirmed];
-  while (pending.length) {
-    const id = pending.pop()!;
-    if (done.has(id)) continue;
-    done.add(id);
-    pending.push(...model.predecessors.get(id)!);
-    if (model.byId.get(id)!.type === "action") {
-      for (const output of model.successors.get(id)!) {
-        if (model.byId.get(output)!.type === "food_state") done.add(output);
-      }
+  const done = new Set(confirmed);
+  for (const { from, to } of model.graph.edges) {
+    if (confirmed.has(from) || confirmed.has(to)) {
+      done.add(from);
+      done.add(to);
     }
   }
   return done;

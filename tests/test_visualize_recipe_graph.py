@@ -10,6 +10,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 from compile_recipe import compile_recipe
+from serve_recipe_graphs import build_site
 from visualize_recipe_graph import action_order, render_graph
 
 
@@ -51,6 +52,23 @@ class ViewerTests(unittest.TestCase):
         self.assertEqual(json.loads(data['data']), self.graph)
         step_data = next(s for s in parser.scripts if s['attrs'].get('id') == 'step-data')
         self.assertEqual(json.loads(step_data['data']), action_order(self.graph))
+
+    def test_site_picker_links_to_current_exports_only(self):
+        with tempfile.TemporaryDirectory() as folder:
+            recipes = Path(folder) / 'recipes'
+            output = Path(folder) / 'site'
+            recipes.mkdir()
+            source = recipes / 'dish.recipe.json'
+            source.write_text(json.dumps(dict(self.recipe, recipeId='old-dish')))
+            build_site(recipes, output)
+            source.write_text(json.dumps(dict(self.recipe, recipeId='index', name='Eggs & <toast>')))
+            build_site(recipes, output)
+
+            picker = (output / 'index.html').read_text()
+            self.assertNotIn('old-dish.html', picker)
+            self.assertIn('href="index.recipe.html"', picker)
+            self.assertIn('Eggs &amp; &lt;toast&gt;', picker)
+            self.assertIn('id="recipe-data"', (output / 'index.recipe.html').read_text())
 
     def test_untrusted_text_cannot_close_data_script(self):
         graph = copy.deepcopy(self.graph)

@@ -6,7 +6,7 @@
     "typecheck": "tsc -p frontend/tsconfig.json",
     "build": "npm run typecheck && npm run build:viewer && .venv/bin/python scripts/serve_recipe_graphs.py --build-only",
     "dev": "npm run build:viewer && .venv/bin/python scripts/serve_recipe_graphs.py",
-    "test:viewer": "npm run typecheck && npm run build:viewer && node --test tests/viewer-navigation.test.cjs"
+    "test:viewer": "npm run typecheck && npm run build:viewer && node --experimental-strip-types --test tests/scheduler.test.mjs tests/viewer-navigation.test.cjs"
   },
   "devDependencies": {
     "@types/node": "26.6.6",

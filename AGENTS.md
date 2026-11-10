@@ -51,7 +51,7 @@ Distinguish three cases:
 
 Sharing a wok alone does not establish which action must come first. Do not infer mandatory precedence merely from shared equipment or the order of paragraphs. If preserving a source sequence as a conservative modeling choice, identify that assumption in `notes`. The existing beef-onion example preserves a particular wok sequence; do not generalize that into an equipment rule.
 
-An action is eligible when its food inputs are available and its explicit prerequisites are complete. Actually starting it also requires resources. The repository currently validates and visualizes dependencies; it does not implement a scheduler, live readiness tracking, or cook assignment.
+An action is eligible when its food inputs are available and its explicit prerequisites are complete. Actually starting it also requires resources. The viewer assigns one hands-on task at a time. Running passive actions keep their listed equipment and release the cook for another task. The cook confirms completion before dependents become eligible.
 
 ### Durations
 

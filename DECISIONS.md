@@ -6,7 +6,7 @@ This log is append-only. Add new decisions at the end; do not edit or delete exi
 
 Date: 2026-10-19
 
-We’ll represent recipes as a graph where ingredients, intermediate food states, and actions are nodes. Edges connect inputs → actions → outputs. An action can start once all its inputs are ready, allowing us to coordinate multiple dishes.
+We’ll represent recipes as a graph where ingredients, intermediate food states, and actions are nodes. Edges connect inputs → actions → outputs. An action can start once all its inputs are ready, allowing us to coordinate multiple dishes.†
 
 ## 002 — Author recipes as steps and model measurement explicitly
 
@@ -151,3 +151,16 @@ Preserve self-contained offline HTML exports and the Python visualization CLI.
 Node is needed during generation, but the exported site needs no application
 server or backend. Build frontend assets before invoking the Python renderer;
 `npm run build` rebuilds the UI and generates all saved recipe pages.
+
+## 011 — Run passive tasks alongside one hands-on task
+
+Date: 2026-11-09
+
+The cook explicitly starts and finishes tasks. A started hands-on task stays
+assigned until the cook marks it done. Starting a passive task puts it in
+progress and allows the viewer to assign the next eligible task. Several
+passive tasks can run together when their equipment is available. Occasional
+stirring can be part of a passive instruction.
+
+Manual completion releases the task's equipment and makes its outputs available.
+Planned durations can guide task selection. Elapsed time never completes a task.

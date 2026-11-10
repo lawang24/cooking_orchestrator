@@ -75,7 +75,7 @@ food states. Timings remain planning values, not automatic completion triggers.
 Timing is stored directly on each step (and compiled action), without a separate
 `duration` object:
 
-- `scheduled_duration_seconds`: positive integer seconds for future scheduling and calculations.
+- `scheduled_duration_seconds`: positive integer seconds used to rank the work remaining on each branch.
 - `scheduled_duration_source`: `source` when the number comes from a recipe timing
   (including a value chosen within its stated range), or `estimate` when inferred.
   A total that includes estimated setup or transfer time is also an estimate.
@@ -96,7 +96,7 @@ Customized measurements remain separate, whether authored in JSON or edited afte
 compilation, as do all prep and cooking actions.
 Gyudon counts onions whole and the beef-onion stir-fry uses ounces: both can
 belong to the same meal, but their onion nodes and measurements stay separate.
-Scheduling cooks and equipment remains future work.
+The single-cook viewer can schedule actions across the merged graph.
 
 Generate a combined meal graph and viewer with the experiment CLI:
 
@@ -153,7 +153,7 @@ action order to a Node build-time renderer, which prerenders the React component
 to HTML and embeds the browser bundle, CSS, and data. Before JavaScript runs, the
 page contains a visible recipe document with ingredients, every instruction,
 timings, notes, and finished dishes. React hydrates that HTML and opens the
-interactive step player; the complete document remains available under
+ingredient list. Choose **Start recipe** to see the first task. The complete document remains available under
 **Overview → Recipes**. No browser requests to Python or Node are needed.
 
 To regenerate **all** saved recipes after frontend or recipe changes:
@@ -162,26 +162,29 @@ To regenerate **all** saved recipes after frontend or recipe changes:
 npm run build
 ```
 
-This checks TypeScript, builds the frontend, and writes each recipe's HTML to
-`visualizations/`, then exits. Upload those HTML files to any static host or
-share them individually. Node and Python are generation dependencies only.
+This checks TypeScript, builds the frontend, and writes a recipe picker
+(`visualizations/index.html`) alongside the recipe pages. The picker lists
+the recipes in `recipes/*.recipe.json`. Open it locally or upload the files
+printed by the build to the same directory on a static host. You can also
+share individual recipe pages. Node and Python are generation dependencies only.
 After editing frontend code, rerun `npm run build:viewer` before using the
 single-recipe Python command. Generated files are ignored by Git.
 
 ### Viewer controls
 
 For an HTTP preview, run `npm run dev` after setup, then open
-`http://127.0.0.1:8766/gyudon.html` (or `beef-onion-stir-fry.html`). The server
+`http://127.0.0.1:8766/` to choose a recipe. Direct links such as `/gyudon.html` also work. The server
 builds the React viewer and regenerates every recipe on startup, then serves only the `visualizations/`
 directory, bound to localhost. Restart after source changes, then refresh the
 page. Stop with Ctrl+C; choose another port with `npm run dev -- --port 8767`.
 
-- The viewer opens with one centered cooking instruction, its planned duration, and any equipment it needs. Choose **Next** or press **Right** to complete the current action and advance. Choose **Finish step** to complete the last action. **Previous** or **Left** undoes progress back to the action you revisit. Hold either arrow key to keep stepping in that direction. After finishing the last action, **Undo finish** reopens it.
+- Choose **Start task** to begin the assigned action. A hands-on action stays current until you choose **Mark done**. A passive action moves to **In progress** and the viewer offers the next eligible task. Each passive task has its own **Mark done** button, available even while you work on another action. Occasional stirring can stay in the passive instruction.
+- **Undo last action** reverses one start or completion, including returning a finished passive task to the running list. **Right** activates the main button and **Left** undoes the last change. Progress lasts until reload.
 - The bottom-right minimap shows one dot per action. Links run from earlier actions to the actions that use their food or require them to finish first. A ring marks the current action, and green dots mark completed actions. Click the minimap to explore the full graph, including ingredients and food states.
-- Open **Overview** in the top-right corner. **Progress** shows your position in the ordered action list. Select an action to jump to it. **Recipes** contains the complete readable recipe document: serving counts, ingredients, instructions, notes, and finished dishes.
+- Open **Overview** in the top-right corner. **Progress** shows running and finished actions. Select any action to preview its instructions, then choose **Back to cooking** to resume. **Recipes** contains the complete readable recipe document: serving counts, ingredients, instructions, notes, and finished dishes.
 - **Whole graph** shows ingredients, actions, and food states. Solid arrows show food flow and dashed arrows show required ordering. Select a node to inspect it, or follow a linked node in its details. Scroll to zoom, drag to pan, or use the zoom, layout, and fit controls. **Show ordering** toggles the dashed arrows and retains their layout constraints.
 - Choose **Back to step** to resume the current instruction after inspecting the overview. Escape also returns to the step. On a selected graph node, Escape first clears its selection.
-- The action order follows food dependencies and explicit prerequisites. Source order breaks ties between independent actions. Completion lasts until the page reloads. Jumping ahead in the progress list only moves the current position. Jumping back rewinds completion to that action. Completing an action after a jump also marks its prerequisites done, while independent branches keep their own status.
+- An action is eligible once its food producers and explicit prerequisites are complete. Each distinct equipment ID represents one available item, reserved from start to manual completion. Actions requiring more than one cook stay blocked. Among eligible actions, the viewer favors the longest remaining chain of scheduled durations, with walkthrough order breaking ties. Durations never trigger completion.
 
 ## Validation and tests
 
@@ -241,7 +244,8 @@ dependency ordering, and switching modes. They do not verify pixel layout.
 - `scripts/merge_recipe_graphs.py`: combines compiled recipe graphs and merges measurements matching a conservative template.
 - `scripts/validate_recipe_graph.py`: validates internal graph semantics.
 - `scripts/visualize_recipe_graph.py`: compiles and validates recipes, computes action order, and invokes the React static renderer over stdin/stdout.
-- `frontend/App.tsx`: React application state and navigation.
+- `frontend/scheduler.ts`: single-cook eligibility, priority, and start/finish transitions.
+- `frontend/App.tsx`: cooking history, previews, and navigation.
 - `frontend/components/`: step player, graph view, node details, and semantic recipe document.
 - `frontend/model.ts`: graph layout and dependency-derived progress, shared by the build and browser.
 - `frontend/types.ts`: TypeScript shape of the validated JSON boundary; keep it aligned with `scripts/recipe_types.py` when changing the compiled graph contract.

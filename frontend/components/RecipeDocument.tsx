@@ -1,5 +1,19 @@
 import { name, timing, type Model } from "../model";
 
+export function IngredientList({ graph, id }: { graph: Model["graph"]; id?: string }) {
+  return (
+    <ul className="ingredients" id={id}>
+      {graph.nodes
+        .filter((node) => node.type === "ingredient")
+        .map((node) => (
+          <li key={node.id}>
+            <span className="amount">{node.quantity} {node.unit}</span>{" "}{node.name}
+          </li>
+        ))}
+    </ul>
+  );
+}
+
 // This is real, visible HTML before hydration, and remains available in Recipes.
 export function RecipeDocument({
   model,
@@ -26,15 +40,7 @@ export function RecipeDocument({
         ))}
       </ul>
       <h2>Ingredients</h2>
-      <ul id="ingredient-list">
-        {graph.nodes
-          .filter((node) => node.type === "ingredient")
-          .map((node) => (
-            <li key={node.id}>
-              {node.quantity} {node.unit} {node.name}
-            </li>
-          ))}
-      </ul>
+      <IngredientList graph={graph} id="ingredient-list" />
       <h2>Instructions</h2>
       <p className="muted">
         Timings are planning aids. Follow the completion cues in each
