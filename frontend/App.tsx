@@ -17,6 +17,7 @@ import { useArrowNavigation } from "./useArrowNavigation";
 
 import {
   finishTask,
+  startTask,
   startAssignedTasks,
   createSchedule,
   currentAction,
@@ -27,6 +28,7 @@ import {
 type PlayerEvent =
   | { type: "startRecipe" }
   | { type: "undo" }
+  | { type: "start"; id: string }
   | { type: "finish"; id: string };
 
 export function App({ graph, steps, hasRecipeIndex, onHome }: ViewerData & { onHome?: () => void }) {
@@ -44,7 +46,9 @@ export function App({ graph, steps, hasRecipeIndex, onHome }: ViewerData & { onH
         return history.length ? history : [startAssignedTasks(schedule, initialCookingState)];
       const state = history[history.length - 1];
       if (!state) return history;
-      const next = finishTask(schedule, state, event.id);
+      const next = event.type === "start"
+        ? startTask(schedule, state, event.id)
+        : finishTask(schedule, state, event.id);
       return next === state ? history : [...history, next];
     },
     [] as CookingState[],
@@ -128,6 +132,7 @@ export function App({ graph, steps, hasRecipeIndex, onHome }: ViewerData & { onH
         hidden={!started || overview}
         onUndo={() => dispatch({ type: "undo" })}
         onReturn={() => setPreview(undefined)}
+        onStart={(id) => dispatch({ type: "start", id })}
         onFinish={(id) => dispatch({ type: "finish", id })}
         onMap={() => showOverview(true, "graph")}
       />
@@ -181,6 +186,8 @@ export function App({ graph, steps, hasRecipeIndex, onHome }: ViewerData & { onH
                   <span className="step-status">
                     {state.done.has(node.id)
                       ? "✓ Done"
+                      : state.pendingStart === node.id
+                        ? "Ready to start"
                       : state.running.has(node.id)
                         ? "In progress"
                         : ""}

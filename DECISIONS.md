@@ -196,3 +196,30 @@ Date: 2026-11-10
 Run Pyodide directly in the page. Recipe creation is a blocking operation with
 a loading indicator while Python loads and validates the input. A web worker
 and worker messaging are unnecessary for this flow.
+
+## 015 — Prefer continuing work on the same food
+
+Date: 2026-11-10
+
+Refines decision 011's task selection: keep longest-remaining-chain priority,
+but give direct food-flow successors of the last completed hands-on action a
+120-second ranking bonus. This is a bounded preference for keeping related work
+together, such as getting onions and then chopping them. Ordering-only links do
+not receive the bonus. Equal adjusted scores retain the existing base priority.
+
+Dependencies, equipment availability, and cook requirements remain mandatory.
+Passive successors can start and free the cook for another branch; completing a
+passive task preserves the last hands-on context. Store that context in cooking
+state so undo restores it along with running and completed tasks. The bonus
+does not change planned durations, recipe graphs, or static walkthrough order.
+
+## 016 — Acknowledge passive tasks before starting them
+
+Date: 2026-11-10
+
+Refines decision 012: hands-on assignments still start automatically, but each
+passive assignment appears as the current instruction until the cook chooses
+Started. Only then does it move to In progress, hold its equipment, and release
+the cook for the next assignment. Passive completion remains a separate manual
+Done confirmation. Undo reverses both start acknowledgements and completions,
+restoring the previous assignment and running tasks.

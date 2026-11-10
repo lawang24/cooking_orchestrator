@@ -15,6 +15,7 @@ interface PlayerProps {
   canUndo: boolean;
   onUndo: () => void;
   onReturn: () => void;
+  onStart: (id: string) => void;
   onFinish: (id: string) => void;
   onMap: () => void;
 }
@@ -27,6 +28,7 @@ export function StepPlayer({
   canUndo,
   onUndo,
   onReturn,
+  onStart,
   onFinish,
   onMap,
 }: PlayerProps) {
@@ -46,6 +48,7 @@ export function StepPlayer({
     (action) => action.attention === "passive" && running.has(action.id),
   );
   const current = node && layout.node(node.id);
+  const needsStart = node?.id === state.pendingStart;
   let message = "This recipe needs more than one cook to continue.";
   if (done.size === steps.length) message = "Recipe complete";
   else if (running.size) message = "Waiting for a task in progress";
@@ -55,7 +58,7 @@ export function StepPlayer({
         <div aria-live="polite" aria-atomic="true">
           {node && (
             <p id="step-timing">
-              {preview ? "Preview · " : "In progress · "}
+              {preview ? "Preview · " : needsStart ? "Ready to start · " : "In progress · "}
               {timing(node)}
             </p>
           )}
@@ -78,10 +81,11 @@ export function StepPlayer({
             disabled={!preview && !node}
             onClick={() => {
               if (preview) onReturn();
+              else if (node && needsStart) onStart(node.id);
               else if (node) onFinish(node.id);
             }}
           >
-            {preview ? "Back to cooking" : "Done"}
+            {preview ? "Back to cooking" : needsStart ? "Started" : "Done"}
           </button>
         </nav>
         {passive.length > 0 && (

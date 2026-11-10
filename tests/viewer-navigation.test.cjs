@@ -508,6 +508,24 @@ test('one deliberate press completes the assigned task and undo restores it', as
   assert.equal(v.get('next').textContent, 'Done');
 });
 
+test('ingredient preparation stays together and undo restores continuation choices', async t => {
+  const v = await cookingViewer('butter-paneer');
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  const recipe = JSON.parse(fs.readFileSync(path.join(root, 'recipes/butter-paneer.recipe.json'), 'utf8'));
+  const instruction = id => recipe.steps.find(step => step.id === id).instruction;
+  assert.equal(v.instruction(), instruction('measure_onion'));
+  await v.click(v.get('next'));
+  assert.equal(v.instruction(), instruction('chop_onion'));
+  await v.click(v.get('next'));
+  assert.equal(v.instruction(), instruction('measure_neutral_oil'));
+  await v.click(v.get('previous'));
+  assert.equal(v.instruction(), instruction('chop_onion'));
+  await v.click(v.get('previous'));
+  assert.equal(v.instruction(), instruction('measure_onion'));
+  await v.click(v.get('next'));
+  assert.equal(v.instruction(), instruction('chop_onion'));
+});
+
 test('graph inspection, zoom, recipe details and Escape preserve the current action', async t => {
   const v = await cookingViewer();
   t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, [], 'No script or hydration errors'); });
@@ -711,6 +729,55 @@ test('marinating overlaps prep and searing waits for manual confirmation', async
   await v.click(v.get('map-button'));
   await v.graphView('whole');
   assert.ok(v.get('nodes').querySelector('[data-id="finished_stir_fry"]').classList.contains('done'));
+});
+
+test('butter paneer passive steps require Started, support undo, and wait for Done', async t => {
+  const v = await cookingViewer('butter-paneer');
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  const graph = JSON.parse(v.get('recipe-data').textContent);
+  const steps = JSON.parse(v.get('step-data').textContent);
+  const instruction = id => formatRecipeText(graph.nodes.find(node => node.id === id).instruction);
+  const running = label => v.document.querySelector(`button[aria-label="Done — ${label}"]`);
+  const completed = id => v.get('map-nodes').querySelector(`[data-id="${id}"]`).classList.contains('done');
+  const advanceTo = async id => {
+    for (let i = 0; i < steps.length * 2 && v.instruction() !== instruction(id); i++) {
+      assert.equal(v.get('next').disabled, false, `Should reach ${id} before waiting`);
+      await v.click(v.get('next'));
+    }
+    assert.equal(v.instruction(), instruction(id));
+  };
+
+  await advanceTo('simmer_base');
+  assert.equal(v.get('next').textContent, 'Started');
+  assert.match(v.get('step-timing').textContent, /^Ready to start · 15m planned · Hands-off$/);
+  assert.equal(running('Simmer base'), null);
+  assert.equal(completed('simmer_base'), false);
+  await v.toggle();
+  assert.match(v.get('progress-list').children[steps.indexOf('simmer_base')].textContent, /Ready to start/);
+  await v.toggle();
+  await v.key('ArrowRight');
+  assert.ok(running('Simmer base'));
+  assert.equal(completed('simmer_base'), false);
+  await v.key('ArrowLeft');
+  assert.equal(v.instruction(), instruction('simmer_base'));
+  assert.equal(v.get('next').textContent, 'Started');
+  assert.equal(running('Simmer base'), null);
+  await v.click(v.get('next'));
+  for (let i = 0; i < steps.length && !v.get('next').disabled; i++) await v.click(v.get('next'));
+  assert.match(v.instruction(), /Waiting/);
+  assert.equal(completed('remove_whole_spices'), false);
+  await v.click(running('Simmer base'));
+  assert.equal(v.instruction(), instruction('remove_whole_spices'));
+  assert.equal(v.get('next').textContent, 'Done');
+  await v.click(v.get('next'));
+  assert.equal(v.instruction(), instruction('cool_base'));
+  assert.equal(v.get('next').textContent, 'Started');
+  assert.equal(running('Cool base'), null);
+  await v.click(v.get('next'));
+  assert.ok(running('Cool base'));
+  assert.equal(completed('cool_base'), false);
+  await v.click(running('Cool base'));
+  assert.equal(v.instruction(), instruction('blend_base'));
 });
 
 test('both graphs flow down from their starting nodes to their final outputs', async t => {
