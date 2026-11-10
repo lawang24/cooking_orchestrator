@@ -1,3 +1,4 @@
+import { OriginalMethod } from "./OriginalMethod";
 import { useMemo } from "react";
 import { edgePath, makeLayout, name, timing, type Model } from "../model";
 
@@ -58,6 +59,7 @@ export function StepPlayer({
             </p>
           )}
           <h1 id="step-instruction" tabIndex={-1}>{node?.instruction ?? message}</h1>
+          {node && <OriginalMethod key={node.id} model={model} id={node.id} />}
           {node && node.equipment.length > 0 && (
             <p id="step-tools">
               Use {node.equipment.map((id) => id.replace(/_/g, " ")).join(", ")}

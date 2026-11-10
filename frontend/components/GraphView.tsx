@@ -158,7 +158,7 @@ export function GraphView({
         <div id="summary" className="muted">
           {graph.recipes
             ? `${graph.recipes.length} recipes`
-            : `${graph.servings} servings`}{" "}
+            : `${graph.servings} serving${graph.servings === 1 ? "" : "s"}`}{" "}
           · {nodes.length} {actionsOnly ? "actions" : "nodes"} · {foodLinks} food-flow links ·{" "}
           {connections.length - foodLinks} ordering links
         </div>

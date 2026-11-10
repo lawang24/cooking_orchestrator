@@ -58,6 +58,7 @@ cross-recipe batching belongs to the planner.
   sum to its amount using compatible volume, weight, or `whole` units. Do not mix
   weight and volume without an explicitly modeled conversion. Measurement is
   active work with at least one cook and explicitly authored timing and equipment.
+- Name food states for their contents or purpose. In cooking instructions, refer to the measured food or use per-serving directions (for example, “one bowl per serving”). The viewer scales structured quantities when the cook adjusts servings.
 - Give every step a unique `id`, a structured `operation`, and an actionable
   `instruction`. Reuse operation names for the same action, such as `slice`,
   `mix`, `marinate`, `cut`, `sear`, `simmer`, and `stir_fry`.

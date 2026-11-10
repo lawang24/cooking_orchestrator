@@ -1,3 +1,4 @@
+import { forServings, formatQuantity } from "./portions";
 import dagre from "@dagrejs/dagre";
 import type {
   ActionNode,
@@ -23,7 +24,8 @@ export const time = (seconds: number) =>
 export const timing = (node: ActionNode) =>
   `${time(node.scheduled_duration_seconds)} planned${node.scheduled_duration_source === "estimate" ? " (estimate)" : ""} · ${node.attention === "passive" ? "Hands-off" : "Hands-on"}`;
 export function meta(node: FoodNode, graph: CompiledGraph) {
-  if (node.type === "ingredient") return `${node.quantity} ${node.unit}`;
+  if (node.type !== "action" && node.quantity !== undefined)
+    return `${formatQuantity(node.quantity)} ${node.unit}`;
   if (node.type === "action")
     return `${time(node.scheduled_duration_seconds)} · ${node.attention}${node.scheduled_duration_source === "estimate" ? " · est." : ""}`;
   return graph.outputs.includes(node.id)
@@ -31,7 +33,14 @@ export function meta(node: FoodNode, graph: CompiledGraph) {
     : "Intermediate state";
 }
 
-export function createModel({ graph, steps }: ViewerData) {
+export function createModel({ graph: original, steps }: ViewerData, servings = original.servings) {
+  const graph = forServings(original, servings);
+  const originalMethods = new Map<string, string>();
+  if (graph !== original) {
+    for (const node of original.nodes) {
+      if (node.type === "action" && node.operation === "measure") originalMethods.set(node.id, node.instruction);
+    }
+  }
   const byId = new Map(graph.nodes.map((node) => [node.id, node]));
   const actions = steps.map((id) => {
     const node = byId.get(id);
@@ -68,6 +77,8 @@ export function createModel({ graph, steps }: ViewerData) {
     graph,
     steps,
     byId,
+    originalMethods,
+    originalServings: original.servings,
     actions,
     connections,
     actionLinks,

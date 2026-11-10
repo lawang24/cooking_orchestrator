@@ -497,7 +497,7 @@
     },
     {
       "id": "fry_eggs",
-      "instruction": "Heat oil in a separate skillet and fry four eggs sunny-side up.",
+      "instruction": "Heat oil in a separate skillet and fry the eggs sunny-side up.",
       "scheduled_duration_seconds": 300,
       "scheduled_duration_source": "estimate",
       "attention": "active",
@@ -515,13 +515,13 @@
       "outputs": [
         {
           "id": "fried_eggs",
-          "name": "Four fried eggs"
+          "name": "Fried eggs"
         }
       ]
     },
     {
       "id": "portion_rice",
-      "instruction": "Divide the hot cooked rice among four bowls.",
+      "instruction": "Divide the hot cooked rice among the serving bowls, one per person.",
       "scheduled_duration_seconds": 60,
       "scheduled_duration_source": "estimate",
       "attention": "active",
@@ -537,7 +537,7 @@
       "outputs": [
         {
           "id": "rice_bowls",
-          "name": "Four bowls of hot rice"
+          "name": "Serving bowls of hot rice"
         }
       ]
     },
@@ -565,7 +565,7 @@
     },
     {
       "id": "assemble_bowls",
-      "instruction": "Top each rice bowl with beef, sauce, and an egg; garnish with scallion and sesame.",
+      "instruction": "Divide the beef, sauce, and fried eggs among the rice bowls; garnish with scallion and sesame.",
       "scheduled_duration_seconds": 120,
       "scheduled_duration_source": "estimate",
       "attention": "active",
@@ -585,7 +585,7 @@
       "outputs": [
         {
           "id": "gyudon_bowls",
-          "name": "Four finished gyudon bowls"
+          "name": "Finished gyudon bowls"
         }
       ]
     }

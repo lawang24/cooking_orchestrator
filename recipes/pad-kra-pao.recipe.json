@@ -115,7 +115,7 @@
       "outputs": [
         {
           "id": "whole_shallots",
-          "name": "Two whole shallots",
+          "name": "Whole shallots",
           "ingredient": "shallot",
           "quantity": 2,
           "unit": "whole"
@@ -137,7 +137,7 @@
       "outputs": [
         {
           "id": "whole_cloves",
-          "name": "Seven garlic cloves",
+          "name": "Garlic cloves",
           "ingredient": "garlic",
           "quantity": 7,
           "unit": "whole"
@@ -159,7 +159,7 @@
       "outputs": [
         {
           "id": "whole_chilies",
-          "name": "Three Thai bird chilies",
+          "name": "Thai bird chilies",
           "ingredient": "thai_bird_chili",
           "quantity": 3,
           "unit": "whole"
@@ -327,7 +327,7 @@
       "outputs": [
         {
           "id": "deglazing_broth",
-          "name": "Broth for deglazing (1/3 cup)",
+          "name": "Chicken broth for deglazing",
           "ingredient": "low_sodium_chicken_broth",
           "quantity": 16,
           "unit": "tsp"
@@ -351,7 +351,7 @@
       "outputs": [
         {
           "id": "packed_basil",
-          "name": "Holy basil leaves for finishing",
+          "name": "Packed holy basil leaves for finishing",
           "ingredient": "holy_basil",
           "quantity": 1.5,
           "unit": "cup"

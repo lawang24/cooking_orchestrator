@@ -179,6 +179,7 @@ directory, bound to localhost. Restart after source changes, then refresh the
 page. Stop with Ctrl+C; choose another port with `npm run dev -- --port 8767`.
 
 - Select the **Cooking Orchestrator** logo at the top of a recipe to return to the full recipe list.
+- Before starting a single recipe, set **Servings** to a whole number of 1 or more. Ingredient totals and each measured portion update together. Cooking times use the original recipe’s guidance. Expand **Original method** on a scaled measurement for the author’s technique and original quantities. Reloading restores the authored yield.
 - After **Start recipe**, each assigned action starts immediately. A hands-on action stays current until you choose **Done**. A passive action moves to **In progress** and the viewer offers the next eligible task. Each passive task has its own **Done** button, available even while you work on another action. Occasional stirring can stay in the passive instruction.
 - **Undo last action** reverses the last completion and restores the tasks that were running at that point. **Right** activates the main button and **Left** undoes the last change. Progress lasts until reload.
 - The bottom-right minimap shows one dot per action. Links run from earlier actions to the actions that use their food or require them to finish first. A ring marks the current action, and green dots mark completed actions. Click the minimap to explore those actions in detail.

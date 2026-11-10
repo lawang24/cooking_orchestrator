@@ -1,3 +1,5 @@
+import { formatQuantity } from "../portions";
+import { OriginalMethod } from "./OriginalMethod";
 import { labels, meta, name, time, type Model } from "../model";
 
 export function NodeDetails({
@@ -28,8 +30,8 @@ export function NodeDetails({
                 onClick={() => onSelect(id)}
               >
                 {name(node)}
-                {node.type === "ingredient"
-                  ? ` · ${node.quantity} ${node.unit}`
+                {node.type !== "action" && node.quantity !== undefined
+                  ? ` · ${formatQuantity(node.quantity)} ${node.unit}`
                   : ""}
               </button>
             );
@@ -61,6 +63,7 @@ export function NodeDetails({
             {node.type === "action" && (
               <>
                 <p>{node.instruction}</p>
+                <OriginalMethod model={model} id={node.id} />
                 <h3>Timing</h3>
                 <p>
                   {time(node.scheduled_duration_seconds)} planned ·{" "}

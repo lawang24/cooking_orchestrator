@@ -10,6 +10,7 @@ import { completedNodes, createModel, name } from "./model";
 import type { ViewerData } from "./types";
 import { GraphView } from "./components/GraphView";
 import { IngredientList, RecipeDocument } from "./components/RecipeDocument";
+import { ServingControl } from "./components/ServingControl";
 import { StepPlayer } from "./components/StepPlayer";
 import { useArrowNavigation } from "./useArrowNavigation";
 
@@ -28,7 +29,8 @@ type PlayerEvent =
   | { type: "finish"; id: string };
 
 export function App({ graph, steps, hasRecipeIndex }: ViewerData) {
-  const model = useMemo(() => createModel({ graph, steps }), [graph, steps]);
+  const [servings, setServings] = useState(graph.servings);
+  const model = useMemo(() => createModel({ graph, steps }, servings), [graph, steps, servings]);
   const schedule = useMemo(
     () => createSchedule(model.actions, model.actionLinks),
     [model],
@@ -101,12 +103,15 @@ export function App({ graph, steps, hasRecipeIndex }: ViewerData) {
       {ready && !started && (
         <main className="ingredient-review" aria-labelledby="recipe-title">
           <h1 id="recipe-title">{graph.name}</h1>
-          {graph.servings && <p className="muted">Serves {graph.servings}</p>}
-          <h2>Ingredients</h2>
-          <IngredientList graph={graph} />
-          <button type="button" id="start-recipe" onClick={() => dispatch({ type: "startRecipe" })}>
-            Start recipe
-          </button>
+          <form onSubmit={event => {
+            event.preventDefault();
+            dispatch({ type: "startRecipe" });
+          }}>
+            {servings !== undefined && <ServingControl servings={servings} onChange={setServings} />}
+            <h2>Ingredients</h2>
+            <IngredientList graph={model.graph} />
+            <button type="submit" id="start-recipe">Start recipe</button>
+          </form>
         </main>
       )}
       <StepPlayer

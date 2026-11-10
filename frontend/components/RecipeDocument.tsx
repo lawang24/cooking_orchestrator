@@ -1,3 +1,5 @@
+import { formatQuantity } from "../portions";
+import { OriginalMethod } from "./OriginalMethod";
 import { name, timing, type Model } from "../model";
 
 export function IngredientList({ graph, id }: { graph: Model["graph"]; id?: string }) {
@@ -7,7 +9,7 @@ export function IngredientList({ graph, id }: { graph: Model["graph"]; id?: stri
         .filter((node) => node.type === "ingredient")
         .map((node) => (
           <li key={node.id}>
-            <span className="amount">{node.quantity} {node.unit}</span>{" "}{node.name}
+            <span className="amount">{formatQuantity(node.quantity)} {node.unit}</span>{" "}{node.name}
           </li>
         ))}
     </ul>
@@ -51,6 +53,7 @@ export function RecipeDocument({
           <li key={node.id} data-action-id={node.id}>
             <h3>{name(node)}</h3>
             <p>{node.instruction}</p>
+            <OriginalMethod model={model} id={node.id} />
             <p className="muted">{timing(node)}</p>
             {node.equipment.length > 0 && (
               <p className="muted">
@@ -61,7 +64,7 @@ export function RecipeDocument({
           </li>
         ))}
       </ol>
-      <h2>Recipe notes</h2>
+      <h2>{model.graph.servings !== model.originalServings ? "Recipe notes (original yield)" : "Recipe notes"}</h2>
       <ul id="recipe-notes">
         {graph.notes.map((note, i) => (
           <li key={i}>{note}</li>

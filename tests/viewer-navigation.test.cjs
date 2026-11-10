@@ -99,6 +99,80 @@ test('the opening screen lists every ingredient total before cooking begins', as
   assert.ok(v.get('previous').disabled);
 });
 
+async function setServings(v, value) {
+  const input = v.get('servings');
+  // Dispatch a native edit, bypassing React's value tracker just as typing does.
+  const setter = Object.getOwnPropertyDescriptor(v.dom.window.HTMLInputElement.prototype, 'value').set;
+  setter.call(input, value);
+  await v.dispatch(input, new v.dom.window.Event('input', {bubbles: true}));
+}
+
+test('servings scale totals and split measurements across cooking, recipes and graph details', async t => {
+  const v = await viewer('beef-onion-stir-fry');
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  const review = v.document.querySelector('.ingredient-review');
+  const amounts = () => [...review.querySelectorAll('li')].map(li => li.textContent);
+  const base = amounts();
+  await setServings(v, '6');
+  assert.ok(amounts().includes('7.5 tbsp Water'));
+  await setServings(v, '4');
+  assert.deepEqual(amounts(), base);
+  await setServings(v, '2');
+  assert.ok(amounts().includes('2.5 tbsp Water'));
+  await v.click(v.get('start-recipe'));
+  await v.toggle();
+  await v.panel('recipes');
+  assert.match(v.get('recipe-list').textContent, /2 servings/);
+  const adjusted = 'Measure 0.5 tbsp water for marinade and 0.125 cup water for sauce.';
+  const water = v.document.querySelector('#recipe-instructions [data-action-id="measure_water"]');
+  assert.equal(water.querySelector('p').textContent, adjusted);
+  assert.match(water.querySelector('details').textContent, /Original method \(4 servings\).*1 tbsp, 0.25 cup/);
+  assert.match(v.document.querySelector('[data-action-id="marinate_beef"]').textContent, /15–30 minutes/);
+  await v.panel('progress');
+  await v.click([...v.get('progress-list').querySelectorAll('button')].find(b => b.textContent.includes('Measure water')));
+  assert.equal(v.instruction(), adjusted);
+  await v.click(v.get('map-button'));
+  await v.graphView('whole');
+  const portion = v.get('nodes').querySelector('[data-id="sauce_water"]');
+  await v.dispatch(portion, new v.dom.window.MouseEvent('click', {bubbles: true}));
+  assert.match(v.get('details').textContent, /0.125 cup/);
+});
+
+test('servings change by one and fractional or nonpositive counts cannot start cooking', async t => {
+  const v = await viewer('scrambled-eggs');
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  const decrease = v.document.querySelector('button[aria-label="Decrease servings"]');
+  assert.equal(v.get('servings').value, '1');
+  assert.ok(decrease.disabled);
+  assert.match(v.get('ingredient-list').textContent, /2 whole Large eggs/);
+  for (const invalid of ['', '0', '-1', '0.5', '1.5', '1.25']) {
+    await setServings(v, invalid);
+    assert.equal(v.get('servings').getAttribute('aria-invalid'), 'true');
+    await v.click(v.get('start-recipe'));
+    assert.ok(v.get('stepbar').hidden);
+    assert.match(v.get('ingredient-list').textContent, /2 whole Large eggs/);
+  }
+  await v.click(v.document.querySelector('button[aria-label="Increase servings"]'));
+  assert.equal(v.get('servings').value, '2');
+  assert.match(v.get('ingredient-list').textContent, /4 whole Large eggs/);
+  await v.click(decrease);
+  assert.equal(v.get('servings').value, '1');
+  assert.match(v.get('ingredient-list').textContent, /2 whole Large eggs/);
+  await v.click(v.get('start-recipe'));
+  assert.equal(v.get('stepbar').hidden, false);
+});
+
+test('scaled custom measurements retain the original technique and piece dimensions', async t => {
+  const v = await viewer('butter-paneer');
+  t.after(() => { v.dom.window.close(); assert.deepEqual(v.errors, []); });
+  await setServings(v, '8');
+  const instructions = [...v.get('recipe-instructions').children];
+  const cinnamon = instructions.find(item => item.querySelector('h3').textContent.includes('cinnamon'));
+  assert.match(cinnamon.querySelector('p').textContent, /2 whole cinnamon stick \(1\/2-inch piece\)/);
+  assert.match(cinnamon.querySelector('details').textContent, /Select a 1\/2-inch piece of cinnamon stick/);
+  assert.ok(instructions.some(item => item.textContent.includes('all the cloves')));
+});
+
 test('static exports contain visible semantic recipe content without executing JavaScript', t => {
   for (const recipe of ['gyudon', 'beef-onion-stir-fry', 'butter-paneer', 'scrambled-eggs']) {
     // JSDOM does not run scripts by default, matching a basic HTML-only bot.

@@ -623,3 +623,44 @@ summary:focus-visible {
   color: var(--on-accent);
   font-weight: 600;
 }
+.servings-control,
+.servings-stepper {
+  display: flex;
+  align-items: center;
+}
+.servings-control {
+  flex-wrap: wrap;
+  margin-top: 16px;
+  gap: 12px;
+}
+.servings-stepper {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+}
+.servings-stepper button,
+.servings-stepper input {
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  height: 44px;
+  text-align: center;
+  font: inherit;
+}
+.servings-stepper button {
+  width: 44px;
+  font-size: 18px;
+}
+.servings-stepper input {
+  width: 5ch;
+  appearance: textfield;
+  border-inline: 1px solid var(--line);
+}
+.servings-stepper input::-webkit-inner-spin-button {
+  appearance: none;
+}
+.original-method {
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 14px;
+}

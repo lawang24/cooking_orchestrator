@@ -810,7 +810,7 @@
     {
       "id": "remove_whole_spices",
       "operation": "remove",
-      "instruction": "Take the pan off the heat. Uncover and lift out the bay leaf, cinnamon and all three cloves.",
+      "instruction": "Take the pan off the heat. Uncover and lift out the bay leaf, cinnamon and all the cloves.",
       "scheduled_duration_seconds": 45,
       "scheduled_duration_source": "estimate",
       "attention": "active",
