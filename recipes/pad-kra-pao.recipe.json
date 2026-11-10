@@ -1,0 +1,588 @@
+{
+  "$schema": "../schemas/recipe.schema.json",
+  "schemaVersion": "1.0",
+  "recipeId": "pad-kra-pao",
+  "name": "Pad Kra Pao (Pork and Holy Basil Stir-fry)",
+  "servings": 4,
+  "notes": [
+    "Use Thai bird chilies with the seeds left in, low-sodium chicken broth for deglazing, and fresh holy basil leaves picked from the stems.",
+    "The basil quantity is approximate and measured packed. The broth is 1/3 US cup, recorded as 16 tsp to represent the fraction exactly.",
+    "Finish slicing and measuring before heating the wok so the cook can move straight from one stir-fry step to the next.",
+    "Serve over separately cooked jasmine rice. Rice and the optional fried egg are outside this graph."
+  ],
+  "outputs": [
+    "finished_pad_kra_pao"
+  ],
+  "ingredients": {
+    "neutral_oil": {
+      "name": "Vegetable oil",
+      "quantity": 3,
+      "unit": "tbsp"
+    },
+    "shallot": {
+      "name": "Shallots",
+      "quantity": 2,
+      "unit": "whole"
+    },
+    "garlic": {
+      "name": "Garlic cloves",
+      "quantity": 7,
+      "unit": "whole"
+    },
+    "thai_bird_chili": {
+      "name": "Thai bird chilies",
+      "quantity": 3,
+      "unit": "whole"
+    },
+    "ground_pork": {
+      "name": "Ground pork",
+      "quantity": 1,
+      "unit": "lb"
+    },
+    "sugar": {
+      "name": "Sugar",
+      "quantity": 1,
+      "unit": "tsp"
+    },
+    "fish_sauce": {
+      "name": "Fish sauce",
+      "quantity": 1,
+      "unit": "tbsp"
+    },
+    "light_soy_sauce": {
+      "name": "Light soy sauce",
+      "quantity": 1,
+      "unit": "tbsp"
+    },
+    "dark_soy_sauce": {
+      "name": "Dark soy sauce",
+      "quantity": 2,
+      "unit": "tsp"
+    },
+    "oyster_sauce": {
+      "name": "Oyster sauce",
+      "quantity": 2,
+      "unit": "tsp"
+    },
+    "low_sodium_chicken_broth": {
+      "name": "Low-sodium chicken broth",
+      "quantity": 16,
+      "unit": "tsp"
+    },
+    "holy_basil": {
+      "name": "Fresh holy basil leaves (packed)",
+      "quantity": 1.5,
+      "unit": "cup"
+    }
+  },
+  "steps": [
+    {
+      "id": "measure_neutral_oil",
+      "operation": "measure",
+      "instruction": "Measure 3 tbsp vegetable oil.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "neutral_oil"
+      ],
+      "outputs": [
+        {
+          "id": "wok_oil",
+          "name": "Oil for frying",
+          "ingredient": "neutral_oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_shallot",
+      "operation": "measure",
+      "instruction": "Set out 2 shallots.",
+      "scheduled_duration_seconds": 10,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "shallot"
+      ],
+      "outputs": [
+        {
+          "id": "whole_shallots",
+          "name": "Two whole shallots",
+          "ingredient": "shallot",
+          "quantity": 2,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_garlic",
+      "operation": "measure",
+      "instruction": "Separate 7 cloves from the garlic bulb.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "garlic"
+      ],
+      "outputs": [
+        {
+          "id": "whole_cloves",
+          "name": "Seven garlic cloves",
+          "ingredient": "garlic",
+          "quantity": 7,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_thai_bird_chili",
+      "operation": "measure",
+      "instruction": "Set out 3 Thai bird chilies.",
+      "scheduled_duration_seconds": 10,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [],
+      "inputs": [
+        "thai_bird_chili"
+      ],
+      "outputs": [
+        {
+          "id": "whole_chilies",
+          "name": "Three Thai bird chilies",
+          "ingredient": "thai_bird_chili",
+          "quantity": 3,
+          "unit": "whole"
+        }
+      ]
+    },
+    {
+      "id": "measure_ground_pork",
+      "operation": "measure",
+      "instruction": "Weigh out 1 lb ground pork.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "kitchen_scale"
+      ],
+      "inputs": [
+        "ground_pork"
+      ],
+      "outputs": [
+        {
+          "id": "pork_for_wok",
+          "name": "Raw ground pork for the wok",
+          "ingredient": "ground_pork",
+          "quantity": 1,
+          "unit": "lb"
+        }
+      ]
+    },
+    {
+      "id": "measure_sugar",
+      "operation": "measure",
+      "instruction": "Measure 1 tsp sugar.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "sugar"
+      ],
+      "outputs": [
+        {
+          "id": "seasoning_sugar",
+          "name": "Sugar for seasoning",
+          "ingredient": "sugar",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_fish_sauce",
+      "operation": "measure",
+      "instruction": "Measure 1 tbsp fish sauce.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "fish_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "seasoning_fish_sauce",
+          "name": "Fish sauce for seasoning",
+          "ingredient": "fish_sauce",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_light_soy_sauce",
+      "operation": "measure",
+      "instruction": "Measure 1 tbsp light soy sauce.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "light_soy_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "seasoning_light_soy",
+          "name": "Light soy sauce for seasoning",
+          "ingredient": "light_soy_sauce",
+          "quantity": 1,
+          "unit": "tbsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_dark_soy_sauce",
+      "operation": "measure",
+      "instruction": "Measure 2 tsp dark soy sauce.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "dark_soy_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "seasoning_dark_soy",
+          "name": "Dark soy sauce for seasoning",
+          "ingredient": "dark_soy_sauce",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_oyster_sauce",
+      "operation": "measure",
+      "instruction": "Measure 2 tsp oyster sauce.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_spoons"
+      ],
+      "inputs": [
+        "oyster_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "seasoning_oyster_sauce",
+          "name": "Oyster sauce for seasoning",
+          "ingredient": "oyster_sauce",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_low_sodium_chicken_broth",
+      "operation": "measure",
+      "instruction": "Measure 1/3 cup low-sodium chicken broth.",
+      "scheduled_duration_seconds": 20,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_cup"
+      ],
+      "inputs": [
+        "low_sodium_chicken_broth"
+      ],
+      "outputs": [
+        {
+          "id": "deglazing_broth",
+          "name": "Broth for deglazing (1/3 cup)",
+          "ingredient": "low_sodium_chicken_broth",
+          "quantity": 16,
+          "unit": "tsp"
+        }
+      ]
+    },
+    {
+      "id": "measure_holy_basil",
+      "operation": "measure",
+      "instruction": "Pack the holy basil leaves into a measuring cup to portion about 1 1/2 cups.",
+      "scheduled_duration_seconds": 40,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "measuring_cup"
+      ],
+      "inputs": [
+        "holy_basil"
+      ],
+      "outputs": [
+        {
+          "id": "packed_basil",
+          "name": "Holy basil leaves for finishing",
+          "ingredient": "holy_basil",
+          "quantity": 1.5,
+          "unit": "cup"
+        }
+      ]
+    },
+    {
+      "id": "slice_shallots",
+      "operation": "slice",
+      "instruction": "Trim and peel the shallots, then slice them thinly.",
+      "scheduled_duration_seconds": 90,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "whole_shallots"
+      ],
+      "outputs": [
+        {
+          "id": "sliced_shallots",
+          "name": "Thinly sliced shallots"
+        }
+      ]
+    },
+    {
+      "id": "slice_garlic",
+      "operation": "slice",
+      "instruction": "Peel the garlic cloves and cut them into slices.",
+      "scheduled_duration_seconds": 90,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "whole_cloves"
+      ],
+      "outputs": [
+        {
+          "id": "sliced_garlic",
+          "name": "Sliced garlic"
+        }
+      ]
+    },
+    {
+      "id": "slice_chilies",
+      "operation": "slice",
+      "instruction": "Remove the chili stems and cut the chilies into thin rings, keeping the seeds.",
+      "scheduled_duration_seconds": 45,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "vegetable_knife",
+        "vegetable_board"
+      ],
+      "inputs": [
+        "whole_chilies"
+      ],
+      "outputs": [
+        {
+          "id": "sliced_chilies",
+          "name": "Thinly sliced chilies"
+        }
+      ]
+    },
+    {
+      "id": "fry_aromatics",
+      "operation": "stir_fry",
+      "instruction": "Heat the wok over medium-high heat. Add the oil, shallots and garlic and fry for 3 minutes, stirring.",
+      "scheduled_duration_seconds": 240,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "wok",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "wok_oil",
+        "sliced_shallots",
+        "sliced_garlic"
+      ],
+      "outputs": [
+        {
+          "id": "fried_aromatics",
+          "name": "Fried shallots and garlic in oil"
+        }
+      ],
+      "dependsOn": [
+        "slice_chilies",
+        "measure_ground_pork",
+        "measure_sugar",
+        "measure_fish_sauce",
+        "measure_light_soy_sauce",
+        "measure_dark_soy_sauce",
+        "measure_oyster_sauce",
+        "measure_low_sodium_chicken_broth",
+        "measure_holy_basil"
+      ]
+    },
+    {
+      "id": "fry_chilies",
+      "operation": "stir_fry",
+      "instruction": "Stir the chili rings into the aromatics and fry for 1 minute.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "source",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "wok",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "fried_aromatics",
+        "sliced_chilies"
+      ],
+      "outputs": [
+        {
+          "id": "chili_aromatics",
+          "name": "Fried chilies, shallots and garlic"
+        }
+      ]
+    },
+    {
+      "id": "crisp_pork",
+      "operation": "stir_fry",
+      "instruction": "Turn the heat to high and add the pork. Break it into small crumbles with the spatula and fry until cooked through and starting to crisp.",
+      "scheduled_duration_seconds": 240,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "wok",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "chili_aromatics",
+        "pork_for_wok"
+      ],
+      "outputs": [
+        {
+          "id": "crisped_pork",
+          "name": "Crisped pork with aromatics"
+        }
+      ]
+    },
+    {
+      "id": "season_pork",
+      "operation": "stir_fry",
+      "instruction": "Add the sugar, fish sauce, both soy sauces and oyster sauce. Toss the pork in the seasonings for 1 minute.",
+      "scheduled_duration_seconds": 60,
+      "scheduled_duration_source": "source",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "wok",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "crisped_pork",
+        "seasoning_sugar",
+        "seasoning_fish_sauce",
+        "seasoning_light_soy",
+        "seasoning_dark_soy",
+        "seasoning_oyster_sauce"
+      ],
+      "outputs": [
+        {
+          "id": "seasoned_pork",
+          "name": "Seasoned pork"
+        }
+      ]
+    },
+    {
+      "id": "deglaze_wok",
+      "operation": "deglaze",
+      "instruction": "Pour in the broth and scrape up the browned bits. Keep the heat high so the liquid cooks off quickly.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "wok",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "seasoned_pork",
+        "deglazing_broth"
+      ],
+      "outputs": [
+        {
+          "id": "deglazed_pork",
+          "name": "Seasoned pork after deglazing"
+        }
+      ]
+    },
+    {
+      "id": "wilt_basil",
+      "operation": "stir_fry",
+      "instruction": "Fold the holy basil into the pork and toss just until the leaves wilt.",
+      "scheduled_duration_seconds": 30,
+      "scheduled_duration_source": "estimate",
+      "attention": "active",
+      "cooksRequired": 1,
+      "equipment": [
+        "wok",
+        "burner",
+        "spatula"
+      ],
+      "inputs": [
+        "deglazed_pork",
+        "packed_basil"
+      ],
+      "outputs": [
+        {
+          "id": "finished_pad_kra_pao",
+          "name": "Pork and holy basil stir-fry"
+        }
+      ]
+    }
+  ]
+}
