@@ -7,13 +7,15 @@
     "build": "npm run typecheck && npm run build:viewer && .venv/bin/python scripts/serve_recipe_graphs.py --build-only",
     "dev": "npm run build:viewer && .venv/bin/python scripts/serve_recipe_graphs.py",
     "test:viewer": "npm run typecheck && npm run build:viewer && node --experimental-strip-types --test tests/scheduler.test.mjs tests/viewer-navigation.test.cjs",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:api": "node --experimental-strip-types --test tests/recipe-api.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "ajv": "8.20.0",
     "jsdom": "26.1.0",
     "typescript": "7.0.2",
     "vite": "8.3.7"

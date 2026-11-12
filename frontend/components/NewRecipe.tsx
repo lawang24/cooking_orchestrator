@@ -9,7 +9,7 @@ import type { ViewerData } from "../types";
 const noCompletedSteps = new Set<string>();
 
 export function NewRecipe({ onSave, onCancel }: {
-  onSave: (data: ViewerData, source: string) => void;
+  onSave: (data: ViewerData, source: string) => Promise<void>;
   onCancel: () => void;
 }) {
   const [text, setText] = useState("");
@@ -17,6 +17,7 @@ export function NewRecipe({ onSave, onCancel }: {
   const [status, setStatus] = useState("");
   const [checking, setChecking] = useState(false);
   const [reading, setReading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [review, setReview] = useState<ViewerData>();
   const [graphVisible, setGraphVisible] = useState(false);
   const [copyStatus, setCopyStatus] = useState("");
@@ -27,7 +28,7 @@ export function NewRecipe({ onSave, onCancel }: {
   const input = useRef<HTMLTextAreaElement>(null);
   const errors = useRef<HTMLDivElement>(null);
   const model = useMemo(() => review ? createModel(review) : undefined, [review]);
-  const busy = checking || reading;
+  const busy = checking || reading || saving;
   useEffect(() => () => { version.current++; }, []);
   useEffect(() => { heading.current?.focus(); window.scrollTo(0, 0); }, [review]);
   useEffect(() => { if (error) errors.current?.focus(); }, [error]);
@@ -85,6 +86,14 @@ export function NewRecipe({ onSave, onCancel }: {
     }
   }
 
+  async function save() {
+    if (!review || saving) return;
+    setSaving(true); setError("");
+    try { await onSave(review, text); }
+    catch (error) { setError(error instanceof Error ? error.message : "Could not save your recipe. Please retry."); }
+    finally { setSaving(false); }
+  }
+
   return (
     <div className="recipe-creator">
       <nav className="creator-nav" aria-label="Recipe navigation">
@@ -100,10 +109,12 @@ export function NewRecipe({ onSave, onCancel }: {
         <div className="review-controls">
           <p className="validation-success">✓ Recipe structure and measurements checked</p>
           <div className="creator-actions">
-            <button type="button" onClick={() => setReview(undefined)}>Edit JSON</button>
-            <button type="button" className="primary-button" onClick={() => onSave(review, text)}>Save recipe</button>
+            <button type="button" disabled={saving} onClick={() => { setReview(undefined); setError(""); }}>Edit JSON</button>
+            <button type="button" className="primary-button" disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save recipe"}</button>
           </div>
-          <p className="muted session-note">Saved for this session. Refreshing clears added recipes.</p>
+          <p className="muted">Saving adds this recipe to the shared library for everyone.</p>
+          {saving && <p role="status">Saving to the shared library…</p>}
+          {error && <div className="recipe-error" ref={errors} role="alert" tabIndex={-1}>{error}</div>}
         </div>
         <nav className="review-tabs" aria-label="Recipe preview">
           <button type="button" aria-pressed={!graphVisible} aria-controls="recipes-panel" onClick={() => setGraphVisible(false)}>Recipe</button>
@@ -147,7 +158,7 @@ export function NewRecipe({ onSave, onCancel }: {
               <button type="button" disabled={busy} onClick={onCancel}>Cancel</button>
               <button type="submit" className="primary-button" disabled={busy || !text.trim()}>{checking ? "Checking…" : "Check & review"}</button>
             </div>
-            <p className="muted session-note">Added recipes last until you refresh this page.</p>
+            <p className="muted">After review, save your recipe to share it with everyone.</p>
           </div>
         </form>
       </main>}

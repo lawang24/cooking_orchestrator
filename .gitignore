@@ -5,3 +5,8 @@ visualizations/
 tmp/
 node_modules/
 frontend/dist/
+.env
+.env.*
+!.env.example
+.supabase-revisions.json
+supabase/.temp/

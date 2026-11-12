@@ -1,0 +1,4 @@
+[functions.recipes]
+verify_jwt = false
+entrypoint = "./functions/recipes/index.ts"
+import_map = "./functions/recipes/deno.json"

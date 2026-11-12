@@ -1,0 +1,4 @@
+{
+  "imports": { "ajv/dist/2020.js": "npm:ajv@8.20.0/dist/2020.js" },
+  "compilerOptions": { "strict": true }
+}

@@ -191,16 +191,27 @@ recipe or its graph, use **Edit JSON** for corrections, and choose **Save recipe
 to open the usual ingredient review and cooking guide. Failed checks retain the
 JSON for correction or retry. The app does not call an agent or model service.
 
-Added recipes live only in memory and are cleared on refresh. Navigation from
-the front page to any recipe and back stays within the same page so added
-recipes remain available during that session. Recipe IDs from imports do not
-overwrite existing entries. Database persistence is deferred.
+**Save recipe** publishes the authored JSON to the shared Supabase database.
+Anyone can upload without signing in, and future visitors load the shared library
+on page load. Saves survive refresh and work across devices. The form only opens
+the saved recipe after the server confirms success; a failed save retains the
+review and JSON for retry. Existing recipe IDs cannot be overwritten anonymously:
+identical retries succeed without duplication, and different content using an
+existing ID must be given a new `recipeId`.
 
-No application server is used for importing, checking, or saving. The first
-check downloads the pinned Pyodide runtime and `jsonschema` packages from
-jsDelivr and requires an internet connection; recipe content stays in the
-browser. Existing generated recipe pages remain self-contained offline exports.
-The front page embeds its existing recipe graphs and bundled instructions.
+The first browser check downloads the pinned Pyodide runtime and `jsonschema`
+packages from jsDelivr and requires internet access. Saving then sends the recipe
+JSON to the public `recipes` Supabase Edge Function, which independently validates
+the same JSON Schema and graph semantics before storing it. Its TypeScript graph
+checks are parity-tested against the Python compiler. Uploads are limited to
+256 KB and 1,000 steps. No browser credential or login is required; the function
+uses Supabase-provided credentials server-side and never returns them.
+
+The front page embeds bundled recipes as an offline fallback, and offers Retry
+when the shared library cannot load. Saving requires a connection and does not
+fall back to a temporary local save. Already-loaded recipes remain usable during
+the session. Individual generated recipe pages remain self-contained offline
+exports. Cooking progress is never uploaded.
 
 Run the real browser import tests in a dedicated headless Chromium context:
 
@@ -213,8 +224,10 @@ npm run test:browser
 These tests need internet access for Pyodide, use a temporary static preview on
 port 18766 (override with `RECIPE_TEST_PORT`), and write failure artifacts to the
 ignored `tmp/browser-tests/` directory. They cover parsing and validation errors,
-graph review, cooking, session-only saves, upload, clipboard fallback, failed
-runtime loading, the loading state, and retry.
+graph review, cooking, persistence across reloads and separate browser contexts,
+upload failures, ID conflicts, library retries, clipboard fallback, and checker
+loading/retry. The public API is intercepted with an isolated test store; these
+tests do not publish to the live database.
 
 ### Viewer controls
 
@@ -286,6 +299,85 @@ dependency ordering, and switching modes. They do not verify pixel layout.
 
 ## Implementation
 
+### Supabase recipe storage
+
+Project: [cooking-orchestrator](https://supabase.com/dashboard/project/mrwzofomwdzmxnjgapdw)
+in `lawang24's Org` (Free), region `us-east-1`.
+The recipe migration is applied and the five recipes in `recipes/` are seeded.
+Codex can manage recipes through the connected Supabase integration without a
+local secret key. The database setup is complete; the environment configuration
+below is optional and only needed for direct access from the Python commands.
+
+Supabase stores complete recipe JSON documents only. Cooking progress stays in
+the browser. Recipes are publicly readable and addable through the `recipes`
+Edge Function; direct table access remains private. Local recipe files and
+offline HTML exports still work independently.
+Use a project in a **Free-plan organization**; do not upgrade or enable paid
+branches/add-ons. Free projects may pause after a week of low activity; resume
+them in the dashboard before uploading/downloading. No keep-alive job is needed.
+
+For a new project, apply all SQL files in `supabase/migrations/` in filename order
+with the Supabase migration tooling or SQL editor. The conflict-status migration
+uses HTTP 409 to prevent PostgREST from retrying a permanent revision conflict. The table has RLS enabled and no
+anonymous/authenticated access. Only trusted server-side tooling uses its secret
+key. The database checks document identity/version; Python enforces the complete
+schema and graph semantics before upload and after download.
+
+To use the standalone Python commands, copy `.env.example` to `.env`, enter the project URL and secret key from the
+Supabase dashboard, and load the values into your shell. Never put the secret
+key in frontend code or commit `.env`:
+
+```sh
+set -a
+source .env
+set +a
+.venv/bin/python scripts/supabase_recipes.py upload --dry-run
+.venv/bin/python scripts/supabase_recipes.py upload
+.venv/bin/python scripts/supabase_recipes.py download
+npm run dev -- --source supabase
+```
+
+Uploads default to `recipes/`. Downloads default to `tmp/supabase-recipes/`;
+both commands accept `--directory <path>`. Downloads refuse to replace differing
+local JSONs unless `--overwrite` is explicitly provided and never delete files.
+The ignored `.supabase-revisions.json` in each directory tracks the last observed
+revisions for that project. Keep it with your working recipe files.
+
+All recipes in an upload are validated first and saved in one database
+transaction. Identical documents are unchanged. A conflicting remote revision
+rejects the whole batch. If a conflict occurs (or revision tracking is lost),
+download into a fresh directory, compare and merge your edits there, then upload
+that directory. This preserves the remote revision as the basis for your edits.
+Do not resolve a conflict by deleting revision tracking or blindly overwriting
+local changes. A network failure may leave the upload committed; retrying the
+same documents safely reconciles the revisions.
+
+To regenerate offline exports from Supabase without starting the preview server:
+
+```sh
+npm run build:viewer
+.venv/bin/python scripts/serve_recipe_graphs.py --source supabase --build-only
+```
+
+The browser library fetches shared recipes on page load and uploads on Save.
+Standalone Python tools also support explicit upload, download, and generation.
+Exported HTML contains no database credentials. New shared recipes appear on
+subsequent library loads without rebuilding or redeploying the static site.
+Supabase-backed generation uses the same recipe library and cooking views as
+local files. Individual static recipe pages are snapshots and require rebuilding
+to reflect edits to their recipe.
+
+`tests/test_supabase_recipes.py` covers validation, file round trips, pagination,
+overwrite protection, revision tracking, credential handling, and viewer generation.
+`supabase/tests/recipe_storage.sql` checks the actual database's inserts, updates,
+idempotent retries, atomic conflict rollback, constraints, and access restrictions;
+run it against a seeded project through the SQL editor or connector. All test
+writes roll back. Supabase's informational
+[RLS enabled without policies notice](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
+is expected here: browser users have no table or upload-function access.
+
+### Source files
+
 - `schemas/recipe.schema.json`: step-oriented input contract.
 - `schemas/recipe.example.json`: golden example recipe, used by tests and the LLM guide.
 - `recipes/`: saved recipes, one `<recipeId>.recipe.json` file each.
@@ -305,3 +397,30 @@ dependency ordering, and switching modes. They do not verify pixel layout.
 - `scripts/vendor/dagre-LICENSE`: retained MIT license for Dagre 1.1.5. Dagre is now an npm dependency; its license and the bundled dependencies' licenses are included in generated HTML.
 
 The renderer uses only the input graph; no recipe-specific nodes or layout positions are hardcoded. Recipe text is rendered as text, not executable markup.
+
+
+### Deploying the shared recipe API
+
+The `recipes` Edge Function is deployed in the existing Free project. Its public
+URL is configured in `frontend/recipe-storage.ts`. `supabase/config.toml` disables
+JWT verification intentionally: anyone may read and add recipes. The database
+retains RLS and private table/function grants. The endpoint exposes only listing
+and validated insertion; it never forwards caller-supplied update revisions or
+provides update/delete routes. Its service credential is automatically supplied
+by Supabase, so GitHub Pages needs no secret environment variables.
+
+After changing server validation, deploy all function dependencies, including the
+authoritative schema and viewer types referenced from the repository:
+
+```sh
+npm run test:api
+npx supabase functions deploy recipes --project-ref mrwzofomwdzmxnjgapdw
+```
+
+`tests/recipe-api.test.mjs` compares server compilation and rejection cases with
+Python and checks endpoint behavior. Browser tests mock the shared service to
+verify persistence and failures without writing test recipes to production.
+Frontend changes reach GitHub Pages through the existing workflow on a push to
+`main`; `npm run build` generates a local preview only. The Supabase API and
+static frontend are deployed separately. Free-plan limits and pausing still
+apply; this setup adds no paid plan, branch, or external hosting service.

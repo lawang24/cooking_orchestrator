@@ -223,3 +223,50 @@ Started. Only then does it move to In progress, hold its equipment, and release
 the cook for the next assignment. Passive completion remains a separate manual
 Done confirmation. Undo reverses both start acknowledgements and completions,
 restoring the previous assignment and running tasks.
+
+## 013 — Store recipe JSONs privately in Supabase on the Free plan
+
+Date: 2026-11-10
+
+Store complete authored recipe documents as JSONB in a private `recipes` table.
+Keep the existing recipe schema, Python compilation and semantic validation,
+and self-contained offline viewer. Python tools upload/download validated JSONs;
+viewer generation can optionally read from Supabase. Explicit uploads are atomic
+and check stored revisions to avoid overwriting concurrent edits. Local files
+remain usable independently; this is not automatic two-way synchronization.
+
+Store only recipes, not cooking progress. Credentials stay in local environment
+configuration and never enter the browser bundle. Use the Supabase Free plan;
+do not enable paid upgrades, branches, or add-ons for this integration.
+
+### Reconciliation note — concurrent decision 013 entries
+
+Date: 2026-11-10
+
+Upstream and local work independently used number 013. Both entries above are
+preserved verbatim to keep this log append-only; refer to either by its full
+title to disambiguate. “Import agent-authored recipes with browser Python”
+describes session-only browser imports. “Store recipe JSONs privately in Supabase
+on the Free plan” describes explicit Python storage operations and optional
+viewer generation from stored recipes. Browser saves do not upload to Supabase.
+
+
+## 017 — Publish validated browser imports to a public recipe library
+
+Date: 2026-11-10
+
+Supersedes the session-only saving in “Import agent-authored recipes with browser
+Python” and the private-only usage in “Store recipe JSONs privately in Supabase
+on the Free plan.” Anyone may add and view shared recipes without signing in.
+Keep browser Python validation and review, then save the authored JSON through
+a public Supabase Edge Function. Independently enforce the authoritative schema
+and graph rules server-side, with TypeScript/Python parity tests. Only show a save
+as successful after database confirmation. Preserve the JSON and review on errors.
+
+Load the shared recipe library on each page load, preserving bundled recipes as
+an offline/error fallback. New entries persist across refreshes and visitors.
+Anonymous uploads may add new recipe IDs and retry identical documents but may
+not overwrite or delete existing recipes. Direct database access stays private;
+the Edge Function uses its platform-provided server credential. No secret key is
+bundled into the static frontend. Keep the Free plan and store only recipe JSONs,
+not cooking progress. Public requests are limited to 256 KB and 1,000 steps.
